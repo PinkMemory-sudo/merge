@@ -1,9 +1,3 @@
-
-
-
-
-
-
 # 数据类型
 
 
@@ -111,7 +105,7 @@ Redis中有16384个哈希槽，每个key根据算法计算出hash槽的位置，
 
 **同步机制**
 
-![image-20220124174153500](/Users/chenguanlin/Documents/workspace/merge/img/redis同步机制.png)
+![image-20220124174153500](../img/redis同步机制.png)
 
 
 
@@ -198,7 +192,7 @@ WATCH
 
 **集群中Session共享**
 
-![image-20220124175227871](/Users/chenguanlin/Documents/workspace/merge/img/Redis共享Session.png)
+![image-20220124175227871](../img/Redis共享Session.png)
 
 
 
@@ -212,7 +206,7 @@ WATCH
 
 **利用Redis设计一个消息队列**
 
-![image-20220124174604923](/Users/chenguanlin/Documents/workspace/merge/img/redis实现MQ.png)
+![image-20220124174604923](../img/redis实现MQ.png)
 
 **写操作丢失**
 
@@ -220,7 +214,7 @@ WATCH
 
 **回收进程如何工作**
 
-![image-20220124174927608](/Users/chenguanlin/Documents/workspace/merge/img/Redis回收进程.png)
+![image-20220124174927608](../img/Redis回收进程.png)
 
 
 
@@ -237,11 +231,15 @@ WATCH
 
 **Redis内存模型**
 
-![image-20220124182816566](/Users/chenguanlin/Documents/workspace/merge/img/Redis内存模型.png)
+![image-20220124182816566](../img/Redis内存模型.png)
 
 
 
+# 缓存一致性问题
 
+
+
+# 布隆过滤器
 
 
 

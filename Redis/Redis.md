@@ -581,7 +581,17 @@ PUBLISH channel message
 
 
 
-*  事务中任意命令执行失败，其余的命令依然被执行， Redis 事务的执行并不是原子性的，仅作为批量执行的脚本。
+与其他数据库的事务不同，Redis事务中任意命令执行失败，其余的命令依然被执行， Redis 事务的执行并不是原子性的，仅作为批量执行的脚本。事务将事务块中的所有命令进行序列化，防止别的命令插队。
+
+
+
+**组队时发生异常**(exec之前)
+
+队列中所有命令都不执行
+
+**运行时异常**
+
+其他命令正常执行
 
 
 
@@ -591,174 +601,18 @@ PUBLISH channel message
 2. 传入多条命令
 3. EXEC触发事务
 4. DISCARD，放弃事务块里的事务
-5. WATCH key [key ...]监听指定的key，如果key的值发生改变，事务就会中断
 
 
 
+## 事务冲突的解决
 
 
-# 分区
 
+**乐观锁的实现**：WATCH
 
+执行事务前，WATCH key [key ...]监听指定的key，如果key的值发生改变，事务就会中断
 
-就是将数据分隔到多个Redis实例中。
 
-
-
-**缺陷**：
-
-
-
-
-
-# 分布式锁
-
-
-
-
-
-
-
-
-
-# Jedis
-
-Java客户端，就如MySQL与JDBC的关系。
-
-
-
-
-
-* String：二进制安全的，redis 的 string 可以包含任何数据。比如jpg图片或者序列化的对象。
-* hash：键值对集合，适合用于存储对象
-* List：字符串列表
-* Set：字符串的无需列表，通过哈希表实现的，所以添加，删除，查找的复杂度都是 O(1)。
-* sorted set，字符串的有序集合
-
-[^优点]: 可持久化，数据类型丰富，支持数据备份，性能高(读写速度100 000左右),Redis的所有操作都是原子性的,支持发布订阅，通知，过期等操作。
-
-
-
-命令
-
-连接Redis服务器
-
-要在 redis 服务上执行命令需要一个 redis 客户端
-
-`redis-cli` 连接到本地的redis服务
-
-`redis-cli -h host -p port -a password` 连接远程服务
-
-
-
-与键相关的命令
-
-用于管理 redis 的键
-
-| 命令 | 描述 |
-| ---- | ---- |
-|      |      |
-|      |      |
-|      |      |
-
-
-
-值为字符串的
-
-| 命令                          | 描述                                                  |
-| ----------------------------- | ----------------------------------------------------- |
-| set key value                 |                                                       |
-| setex key second value        |                                                       |
-| Psetex key milliseconds value |                                                       |
-| setnx key value               |                                                       |
-| setrange key offset value     |                                                       |
-| mset key value key value      |                                                       |
-| Msetnx key value key value    |                                                       |
-| incr key                      |                                                       |
-| incrby key increment          |                                                       |
-| Decr key                      |                                                       |
-| Decrby key decrement          |                                                       |
-| Append key value              |                                                       |
-| get key                       |                                                       |
-| getrange key start end        | 获得键对应的值得指定的部分                            |
-| mget key...                   | 获得多个key的值                                       |
-| getset key value              | 设置新值并返回旧值                                    |
-| getbit key offset             | 获得值中指定偏移量的bit，偏移量太大或key不存在时返回0 |
-| strlen key                    | 获得字符串的长度                                      |
-
-
-
-值为hash
-
-| 命令                               | 描述                          |
-| ---------------------------------- | ----------------------------- |
-| hset(key filed value )             | key对应一个键值对             |
-| hmset(key filed value filed value) | key对应多个键值对             |
-| hget(key field)                    | 获得可以中的一个field对应的值 |
-| hmget(key field field)             | 获得多个                      |
-| hvals key                          | 获得所有值                    |
-| Hgetall key                        | 获得所有的键和值              |
-| HEXISTS key field                  |                               |
-| HINCRBY key field increment        |                               |
-| HINCRBYFLOAT key field increment   |                               |
-| HKEYS key                          |                               |
-| HLEN key                           |                               |
-| HSETNX key field value             |                               |
-| HDEL key field1 [field2]           |                               |
-
-
-
-值为list
-
-| 命令                                  | 描述                                                         |
-| ------------------------------------- | ------------------------------------------------------------ |
-| LPUSH key value1 [value2]             |                                                              |
-| LSET key index value                  |                                                              |
-| LPOP key                              | 移出并获取列表的第一个元素                                   |
-| BLPOP key1 [key2 ] timeout            | 如果列表没有元素会阻塞列表直到等待超时或发现可弹出元素为止。 |
-| RPOP key                              |                                                              |
-| BRPOP key1 [key2 ] timeout            |                                                              |
-| LPUSHX key value                      | 将一个值插入到已存在的列表头部                               |
-| RPUSHX key value                      |                                                              |
-| RPOPLPUSH source destination          |                                                              |
-| BRPOPLPUSH source destination timeout |                                                              |
-| LINDEX key index                      |                                                              |
-| LINSERT key BEFOR\|EAFTER pivot value |                                                              |
-| LRANGE key start stop                 |                                                              |
-| LTRIM key start stop                  | 让列表只保留指定区间内的元素，不在指定区间之内的元素都将被删除 |
-| LLEN key                              |                                                              |
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-监听
-
-与memcache相比的好处
-
-多数据库的设置
-
-持久化
-
-主从复制
-
-
-
-连接命令
-
-
-
-# 事务
 
 
 
@@ -843,8 +697,6 @@ appendfsync no
 
 
 
-
-
 **流程**
 
 * 客户端的请求命令被append到AOF缓冲区中
@@ -880,46 +732,6 @@ AOF文件时追加的，文件会越来越大。rewite压缩会对文件中的�
 ## **最佳实践**
 
 官方推荐两者一起使用，对数据一致性不敏感可以使用rdb，不建议单独使用aof，而如果只是错纯缓存，两者可以都不用。
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1162,6 +974,24 @@ cluster-node-timeout 15000
 
 
 
+# 分区
+
+
+
+就是将数据分隔到多个Redis实例中。
+
+
+
+**缺陷**：
+
+
+
+
+
+# 分布式锁
+
+
+
 
 
 # 性能测试工具
@@ -1170,11 +1000,7 @@ cluster-node-timeout 15000
 
 
 
-# 缓存一致性问题
-
-
-
-# 布隆过滤器
+# 
 
 
 
