@@ -23,7 +23,7 @@ redis集群需要两个端口：6370，16379
 
 
 
-## 创建redis集群多分片多副本
+# 创建redis集群多分片多副本
 
 1. In order to make Docker compatible with Redis Cluster you need to use the **host networking mode** of Docker.(--net=host)
 
@@ -133,7 +133,7 @@ cluster-require-full-coverage <yes/no>
 
 
 
-## 手动搭建Redis-cluster
+# 手动搭建Redis-cluster
 
 * 需要redis3.0及以上的版本
 
@@ -256,7 +256,7 @@ create-cluster create
 
 
 
-## 新增或删除节点
+# 新增或删除节点
 
 
 
