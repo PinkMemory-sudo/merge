@@ -6,7 +6,7 @@
 
 ==比较的是地址，判断是不是同一个对象
 
-equals在没有重写时等价于==，用来比较地址，重写后用来比较对象的内容。常用的String重写了equals方法。
+equals没有重写时等价于==，用来比较地址，重写后用来比较对象的内容。常用的String重写了equals方法。
 
 
 
@@ -287,7 +287,7 @@ labelName:
 成员内部类依赖外部类
 
 ```
-1. OutClass.InnerClass innerClass = outClass.new InnerClass();
+1. OutClass.InnerClass innerClass = outClassInstance.new InnerClass();
 2. 外部类提供一个获得内部类的方法
 ```
 
@@ -329,7 +329,7 @@ labelName:
 
 * 类用来定义属性和行为，而接口则主要声明类要实现的行为。
 * 接口没有构造方法，抽象类中可以定义构造函数(声明通用的构造函数)
-* Java8前，接口中都是抽象方法(java8新增default和非抽象方法, jdk9以后可以有private，9之前定义private会便宜报错的 )，抽象类中可以有抽象方法，也可以有实现的方法
+* Java8前，接口中都是抽象方法(java8新增default和非抽象方法, jdk9以后可以有private，9之前定义private会编译报错的 )，抽象类中可以有抽象方法，也可以有实现的方法
 * 接口中只能由static 和 final 变量 ，不能有其他成员变量
 *  从设计层⾯来说，抽象是对类的抽象，是⼀种模板设计，⽽接⼝是对⾏为的抽象，是⼀种⾏ 为的规范 
 *  Jdk 9 在接⼝中引⼊了私有⽅法和私有静态⽅法 
@@ -339,20 +339,8 @@ labelName:
 **接口的变化**
 
 * Java8之前，接口中的方法被`public abstract`隐式修饰，变量被`public static final`修饰
-* Java8引入了静态方法和默认方法
+* Java8引入了默认方法
 * Jdk 9 在接口中引入了私有方法和私有静态方法。
-
-
-
-**Java 的多态表现在哪里**
-
-父类的引用变量可以保存子类的不同实例
-
-
-
-**哪些类是不能被继承的**
-
-final修饰的类，如String，Double等
 
 
 
@@ -394,6 +382,9 @@ StringBuffer与StringBuilder相同，但是StringBuffer是线程安全的
 
 使用""创建的字符串存储在堆中的字符串常量池中，相同的内容只会存储一份。new String()，通过new创建出来的字符串存储是在堆内存中，不会去检查是否存在。
 
+String str="hello world"， 在编译期，JVM会去常量池来查找是否存在“abc”，如果不存在，就在常量池中开辟一个空间来存储“abc”；如果存在，就不用新开辟空间。然后在栈内存中开辟一个名字为str1的空间，来存储“abc”在常量池中的地址值。
+
+String str=new String("hello world")：在编译阶段JVM先去常量池中查找是否存在“abc”，如果过不存在，则在常量池中开辟一个空间存储“abc”。在运行时期，通过String类的构造器在堆内存中new了一个空间，然后将String池中的“abc”复制一份存放到该堆空间中，在栈中开辟名字为str2的空间，存放堆中new出来的这个String对象的地址值。
 
 
 **String a = "hello2"; String b = "hello" + 2; System.out.println((a == b));会输出什么**
@@ -683,6 +674,26 @@ ArrayList是非线程安全的，需要使用Collections的syschronizedList转�
 
 
 
+
+
+**Comparable 和 Comparator接口的区别**  
+
+这两个接口主要用来对集合进行排序。
+
+实现Comparable接口的类，可以直接用来排序。通过Collections.sort()来排序。
+
+而没有实现Comparable接口的类要想排序，需要定义一个比较器。通过list.sort,传入一个Comparator来排序。
+
+Comparable实现compareTo来定义与跟一个对象的比较方法，当前对象大时返回返回值大于0，相等时返回0。
+
+Comparator实现compare方法定义两个对象的比较。
+
+第一个参数-第二个参数为升序
+
+Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接口。
+
+
+
 ## Set
 
 
@@ -730,6 +741,10 @@ HashSet通过HashMap实现，TreeSet通过TreeSet实现
 
 
 
+**边遍历变删除**
+
+使用iterator的remove()方法
+
 
 
 **什么是迭代器**
@@ -743,6 +758,12 @@ HashSet通过HashMap实现，TreeSet通过TreeSet实现
 * Iterator 可用来遍历 Set 和 List 集合，但是 ListIterator 只能用来遍历 List
 * Iterator 对集合只能是前向遍历，ListIterator 既可以前向也可以后向。
 * ListIterator 实现了 Iterator 接口，并包含其他的功能，比如：增加元素，替换元素，获取前一个和后一个元素的索引，等等。
+
+
+
+**Iterator   遍历时修改？**
+
+迭代器在遍历的时候会设置一个modCount，内容有变化就会修改modCount的值，每当使用hasNext/next时都会检测该值是否发生变化。解决方案：同步
 
 
 
@@ -830,49 +851,6 @@ HashSet 的底层是 HashMap ，线程不安全的，可以存储 null 值;
 LinkedHashSet 是 HashSet 的子类，能够按照添加的顺序遍历;
 
 TreeSet 底层使用红黑树，能够按照添加元素的顺序进行遍历，排序的方式有自然排序和定制排 序
-
-
-
-**什么是迭代器(Iterator)**
-
- 
-
-**Iterator 和 ListIterator 的区别是什么？**
-
-* Iterator是遍历Collection的通用的方法，ListIterator 只能用来遍历LIst
-
-* Iterator 对集合只能是前向遍历，ListIterator 既可以前向也可以后向
-*  ListIterator 实现了 Iterator 接口，并包含其他的功能，比如：增加元素，替换元素，获取前一个和后一个元素的索引，等等
-
-
-
-**Iterator   遍历时修改？**
-
-迭代器在遍历的时候会设置一个modCount，内容有变化就会修改modCount的值，每当使用hasNext/next时都会检测该值是否发生变化。解决方案：同步
-
-
-
-**边遍历变删除**
-
-使用iterator的remove()方法
-
-
-
-**Comparable 和 Comparator接口的区别**  
-
-这两个接口主要用来对集合进行排序。
-
-实现Comparable接口的类，可以直接用来排序。通过Collections.sort()来排序。
-
-而没有实现Comparable接口的类要想排序，需要定义一个比较器。通过list.sort,传入一个Comparator来排序。
-
-Comparable实现compareTo来定义与跟一个对象的比较方法
-
-Comparator实现compare方法定义两个对象的比较
-
-第一个参数-第二个参数为升序
-
-Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接口。
 
 
 
@@ -973,7 +951,7 @@ Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接�
 
 **产生死锁的四个条件**
 
-互斥条件：改资源任一时刻只能有一个线程占用
+互斥条件：该资源任一时刻只能有一个线程占用
 
 请求与保持条件：一个进程因请求资源而阻塞时，不释放自己一获得的资源
 
@@ -987,13 +965,9 @@ Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接�
 
 破坏行程死锁的四个条件中的任意一条就可以：请求资源时一次请求全部的资源，没有得到时把自己已有的资源释放掉。
 
-互斥条件：无法破坏，因为我们使用锁的目的就是让他互斥
-
 请求与保持条件：一次申请全部资源，这样就不会因某个资源被其他线程占用而阻塞
 
 不可剥夺条件：如果没有申请到其他线程占用的资源时，把自己占用的那部分释放掉
-
-循环等待条件：
 
 
 
@@ -1022,10 +996,6 @@ Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接�
 
 
 
-**线程状态的切换**
-
-
-
 **sleep方法和wait方法的异同**
 
 * 都会是线程进入阻塞状态，sleep不会释放锁，wait会释放锁。
@@ -1044,10 +1014,6 @@ Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接�
 
 
 **使用wait和notify写一个生产者消费者代码**
-
-
-
-**写一个线程安全的单例模式**
 
 
 
@@ -1075,10 +1041,6 @@ Java中  String、Byte、Char、Date 等大量的类都实现了Compareable接�
 
 **sleep和yield方法的区别**
 
-
-
-**线程调度**
-
 * yield方法会放弃CPU执行权，进入就绪态
 * sleep会进入休眠
 * IO会阻塞
@@ -1097,59 +1059,6 @@ IO阻塞无能威力
 **线程调度器和时间分片**
 
 线程调度器是操作系统的服务，负责为Runnable的线程根据优先级和等待时间分配CPU时间。不受JVM的限制，所以Java设置的优先级不一定有用。
-
-
-
-**常见并发工具类**
-
-CountDownLatch
-
-CrclicBarrier
-
-Semaphore
-
-Exchanger
-
-
-
-**什么是自旋**
-
-很多synchronized中都是简单的代码，执行非常快，不妨不让线程进去阻塞状态，而是在synchronized外循环，循环多次还没获得锁再进行阻塞。
-
-
-
-**CountDownLatch与CrclicBarrier的区别**
-
-* CountDownLatch和CyclicBarrier都能够实现线程之间的等待，只不过它们侧重点不同：
-  CountDownLatch一般用于某个线程A等待若干个其他线程执行完任务之后，它才执行；
-  而CyclicBarrier一般用于一组线程互相等待至某个状态，然后这一组线程再同时执行；
-* CountDownLatch是不能够重用的，而CyclicBarrier是可以重用的。CountDownLatch的计数器只能使用一次。而CyclicBarrier的计数器可以使用reset() 方法重置。所以CyclicBarrier能处理更为复杂的业务场景，比如如果计算发生错误，可以重置计数器，并让线程们重新执行一次。
-* CyclicBarrier还提供其他有用的方法，比如getNumberWaiting方法可以获得CyclicBarrier阻塞的线程数量。isBroken方法用来知道阻塞的线程是否被中断。如果被中断返回true，否则返回false。
-* Semaphore其实和锁有点类似，它一般用于控制对某组资源的访问权限。
-
-
-
-**Semaphore有什么用**
-
-就是一个信号量，它的作用是用来限制某一段代码的并发数，
-
-
-
-**什么是CAS**
-
-比较交换。是一个乐观锁。
-
-CAS包含了三个操作树：内存位置(V),期望值(A),新值(B).
-
-CAS通过无限循环获得数据，当内存地址和期望值相同时，才会将值替换成新值
-
-
-
-**CAS的问题**
-
-* ABA问题
-* CAS值保证一个变量的原子性操作，代码块就不行了
-* 增加了CPU占用率
 
 
 
@@ -1210,43 +1119,31 @@ Java的并发采用的是共享内存模型，整个通信过程对我i们来说
 
 
 
-**线程池原理分析**
-
-
-
 **线程池的五种状态**
 
+* 线程池处在RUNNING状态时，能够接收新任务，以及对已添加的任务进行处理
+* 线程池处在SHUTDOWN状态时，不接收新任务，但能处理已添加的任务
+* 线程池处在STOP状态时，不接收新任务，不处理已添加的任务，并且会中断正在处理的任务
+* 当所有的任务已终止，ctl记录的”任务数量”为0，线程池会变为TIDYING状态。
+* 线程池彻底终止，就变成TERMINATED状态。
 
 
-**线程池的参数**
+
+**线程池的7个参数**
 
 | 参数                     | 说明                                                         |
 | ------------------------ | ------------------------------------------------------------ |
 | corePoolSize             | 线程池要保持的线程的数量                                     |
+| BlockingQueue            | 在线程数达到最大时，就会存放在队列中(runnable通过execute提交的) |
 | maximumPoolSize          | 线程池中最多可以保存的线程数                                 |
+| RejectedExecutionHandler | 线程数已经达到最大，并且队列也满了，对新提交的任务怎么拒绝   |
 | keepAliveTime            | 大于核心线程数时，如果执行时间内没有分配到任务就会清掉       |
 | TimeUnit                 | keepAliveTime的单位                                          |
-| BlockingQueue            | 在线程数达到最大时，就会存放在队列中(runnable通过execute提交的) |
 | ThreadFactory            | 线程池用它来创建线程                                         |
-| RejectedExecutionHandler | 线程数已经达到最大，并且队列也满了，对新提交的任务怎么拒绝   |
 
 
 
-**线程池原理**
-
-结合线程数先变大再减少的场景去记忆
-
-核心线程数
-
-等待队列
-
-最大线程数
-
-拒绝策略
-
-
-
-**线程池的拒绝策略**
+**线程池的4种拒绝策略**
 
 | 拒绝策略             | 说明                                                         |
 | -------------------- | ------------------------------------------------------------ |
@@ -1265,9 +1162,11 @@ Java的并发采用的是共享内存模型，整个通信过程对我i们来说
 
 
 
-线程池的类型
+**线程池的阻塞队列有哪些**
 
-线程池的阻塞队列有哪些
+LinkedBlockingQueue无界
+
+DelayedWorkQueue延迟执行任务
 
 
 
@@ -1276,10 +1175,6 @@ Java的并发采用的是共享内存模型，整个通信过程对我i们来说
 * execute() 方法用于提交不需要返回值的任务，所以无法判断任务是否被线程池执行成功与否;
 
 * submit() 方法用于提交需要返回值的任务。线程池会返回一个 Future 类型的对象，通过这个 Future 对象可以判断任务是否执行成功
-
-
-
-
 
 
 
@@ -1298,6 +1193,10 @@ Java的并发采用的是共享内存模型，整个通信过程对我i们来说
 AbstractQueuedSynchronizer，用来构建锁和同步器的框架，抽象的队列式的同步器。AQS定义了一套多线程访问共享资源的同步器框架，许多同步类实现都依赖于它，如常用的ReentrantLock/Semaphore/CountDownLatch。
 
 [参考](https://www.cnblogs.com/waterystone/p/4920797.html)
+
+维护了一个volatile int state（代表共享资源）和一个FIFO线程等待队列（多线程争用资源被阻塞时会进入此队列）state相关的三个方法：getState，setState，compareAndSetState。
+
+自定义同步器在实现时只需要实现共享资源state的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS已经在顶层实现好了。
 
 不同的自定义同步器争用共享资源的方式也不同。自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护(如获取资源失败入队/唤醒出队 等)，AQS 已经在顶层实现好了。
 
@@ -1324,11 +1223,60 @@ AQS 核⼼思想是，如果被请求的共享资源空闲，则将当前请求�
 
 **AQS 组件**
 
-Semaphore (信号量)
+Semaphore (信号量)，用来限制某一段代码的并发数，
 
-CountDownLatch (倒计时器)
+CountDownLatch (倒计时器)，保证n个线程都执行完之后再执行
 
 CyclicBarrier (循环栅栏):它要做的事情是，让一组线程到达一个屏障(也可以叫同步点)时被阻塞， 直到最后一个线程到达屏障时，屏障才会开⻔
+
+
+
+
+
+**常见并发工具类**
+
+CountDownLatch
+
+CrclicBarrier
+
+Semaphore
+
+Exchanger
+
+
+
+**CountDownLatch与CrclicBarrier的区别**
+
+* CountDownLatch和CyclicBarrier都能够实现线程之间的等待，只不过它们侧重点不同：
+  CountDownLatch一般用于某个线程A等待若干个其他线程执行完任务之后，它才执行；
+  而CyclicBarrier一般用于一组线程互相等待至某个状态，然后这一组线程再同时执行；
+* CountDownLatch是不能够重用的，而CyclicBarrier是可以重用的。CountDownLatch的计数器只能使用一次。而CyclicBarrier的计数器可以使用reset() 方法重置。所以CyclicBarrier能处理更为复杂的业务场景，比如如果计算发生错误，可以重置计数器，并让线程们重新执行一次。
+* CyclicBarrier还提供其他有用的方法，比如getNumberWaiting方法可以获得CyclicBarrier阻塞的线程数量。isBroken方法用来知道阻塞的线程是否被中断。如果被中断返回true，否则返回false。
+* Semaphore其实和锁有点类似，它一般用于控制对某组资源的访问权限。
+
+
+
+**什么是自旋**
+
+很多synchronized中都是简单的代码，执行非常快，不妨不让线程进去阻塞状态，而是在synchronized外循环，循环多次还没获得锁再进行阻塞。
+
+
+
+**什么是CAS**
+
+比较交换。是一个乐观锁。
+
+CAS包含了三个操作树：内存位置(V),期望值(A),新值(B).
+
+CAS通过无限循环获得数据，当内存地址和期望值相同时，才会将值替换成新值
+
+
+
+**CAS的问题**
+
+* ABA问题
+* CAS值保证一个变量的原子性操作，代码块就不行了
+* 增加了CPU占用率
 
 
 
@@ -1366,16 +1314,6 @@ String 重写了equals 方法。所以不同对象但是值相等的时候在equ
 
 
 
-**Synchronized锁升级的过程**
-
-偏向锁：不释放
-
-轻量级锁:CAS,自旋一段时间
-
-重量级锁：完全阻塞
-
-
-
 **为什么Java 早期版本中， synchronized 属于 重量级锁，效率低下**
 
 因为监视器锁(monitor)是依赖于底层的操作系统的 Mutex Lock 来实现的，Java 的线程是映 射到操作系统的原生线程之上的。如果要挂起或者唤醒一个线程，都需要操作系统帮忙完成，而 操作系统实现线程之间的切换时需要从用户态转换到内核态，这个状态之间的转换需要相对比􏰀 ⻓的时间，时间成本相对􏰀高
@@ -1407,6 +1345,24 @@ sunchronized发生异常会释放锁
 **JDK1.6后synchronized的优化**
 
 JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁等技术来减少锁操作的开销。
+
+
+
+**Synchronized锁升级的过程**
+
+[参考](https://www.cnblogs.com/aligege/p/13897342.html)
+
+最开始是无锁状态，有线程使用时变成偏向锁，有线程争强时变成轻量锁，竞争频繁变成重量锁
+
+无状态锁：最开始是无锁状态
+
+偏向锁：存储ThreadID
+
+轻量级锁:CAS+自旋一段时间
+
+重量级锁：完全阻塞
+
+锁一般不hi降级
 
 
 
@@ -1524,10 +1480,6 @@ CountDownLatch 的作用就是 允许 count 个线程阻塞在一个地方，直
 
 
 
-## CompletableFuture
-
-
-
 ## JUC
 
 
@@ -1553,10 +1505,6 @@ CountDownLatch 的作用就是 允许 count 个线程阻塞在一个地方，直
 ThreadLocal.ThreadLocalMap.Entry中的key是弱引用的，也即是当某个ThreadLocal对象不存在强引用时，就会被GC回收，但是value是基于强引用的，所以当key被回收，但是value还存在其他强引用时，就会出现内存的泄露情况，在最新的ThreadLocal中已经做出了修改，即在调用set、get、remove方法时，会清除key为null的Entry，但是如果不调用这些方法，仍然还是会出现内存泄漏 ：），所以要养成用完ThreadLocal对象之后及时remove的习惯。
 
 
-
-**CurrentHashMap的并发度是什么**
-
-就是segment的大小，默认16，意味着最多16条线程操作CurrentHashMap
 
 
 
@@ -1634,7 +1582,7 @@ jdk1.8取消了方法区，用元空间代替。
 
 **虚拟机栈**
 
-保存着栈帧，描述方法执行的内存模型，。每一次函数调用都会有一个对应的栈帧被压入 Java 栈，每一个函数调用结束后，都会有一个栈帧被弹出。
+保存着栈帧，描述方法执行的内存模型。每一次函数调用都会有一个对应的栈帧被压入 Java 栈，每一个函数调用结束后，都会有一个栈帧被弹出。
 
 *栈帧*：存放着局部变量表、操作数（operand）栈、动态链接、方法正常退出或者异常退出的定义等 。 
 
@@ -1805,6 +1753,15 @@ GC主要是对堆内存进行GC。在JDK1.8之前，堆通常被分成新生代�
 
 
 
+**都有哪些垃圾回收算法，都有哪些弊端**
+
+* 标记清除： ⾸先标记出所有不需要回收的对象，在标记完成后统⼀回收掉所 有没有被标记的对象。 造成了内存碎片
+* 复制算法： 以将内存分为大小相同的两块，每次使⽤其中 的⼀块。当这⼀块的内存使⽤完后，就将还存活的对象复制到另⼀块去，然后再把使⽤的空间⼀次清理掉。浪费了一半内存。
+* 标记整理：标记过程仍然与“标记-清除”算法⼀样，但后续步骤不是直接对可回收对象回收，⽽是让所有存活的对象向⼀端移动，然后直接清理掉端边界以外的内存。移动增加了开销。
+* 分代收集：般将 java 堆分为新⽣代和⽼年代，每个代使用不同的算法。
+
+
+
 **晋升的流程**
 
 *Minor GC*
@@ -1818,15 +1775,6 @@ GC主要是对堆内存进行GC。在JDK1.8之前，堆通常被分成新生代�
 * 动态对象年龄判定：“Hotspot 遍历所有对象时，按照年龄从小到大对其所占用的大小进行累 积，当累积的某个年龄大小超过了 survivor 区的一半时，取这个年龄和 MaxTenuringThreshold 中更小的一个值，作为新的晋升年龄阈值”
 
 *Full GC*
-
-
-
-**都有哪些垃圾回收算法，都有哪些弊端**
-
-* 标记清除： ⾸先标记出所有不需要回收的对象，在标记完成后统⼀回收掉所 有没有被标记的对象。 造成了内存碎片
-* 复制算法： 以将内存分为大小相同的两块，每次使⽤其中 的⼀块。当这⼀块的内存使⽤完后，就将还存活的对象复制到另⼀块去，然后再把使⽤的空间⼀次清理掉。浪费了一半内存。
-* 标记整理：标记过程仍然与“标记-清除”算法⼀样，但后续步骤不是直接对可回收对象回收，⽽是让所有存活的对象向⼀端移动，然后直接清理掉端边界以外的内存。移动增加了开销。
-* 分代收集：般将 java 堆分为新⽣代和⽼年代，每个代使用不同的算法。
 
 
 
@@ -2019,6 +1967,8 @@ Stream.of(T...)
 make PREFIX=~/2022/redis/ install
 
 
+
+## CompletableFuture
 
 
 
