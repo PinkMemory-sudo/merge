@@ -1,0 +1,695 @@
+# 基础
+
+* 每条语句一;或者\g或者\G结尾，\g或\G的结果会增加可读性
+* 注释：# 单行注释，/**/多行注释
+
+
+
+一条SQL在MySQL中是如何运行的
+
+
+
+# DDL
+
+
+
+数据定义语言。用于数据库，表，视图和索引等的创建修改和删除
+
+| 命令                                     | 描述                                    |
+| ---------------------------------------- | --------------------------------------- |
+| show databases;                          | 查看数据库列表                          |
+| use 数据库名                             | 选择数据库                              |
+| show tables                              | 查看当前数据库中存在的表                |
+| desc 表名                                | 查看表结构,等效与show column from 表名; |
+| show crate database/table  数据库名/表名 | 查看建库(表语句)                        |
+| RENAME                                   |                                         |
+| TRUNCATE                                 |                                         |
+
+
+
+## 数据库
+
+
+
+**创建数据库**
+
+```mysql
+CREATE DATABASE [if not exists] database_name;
+```
+
+
+
+**修改数据库**
+
+不太可能需要修改
+
+修改字符集
+
+```mysql
+ALTER DATABASE database_name CHARACTER SET utf8;
+```
+
+**删除数据库**
+
+```mysql
+DROP DATABASE [id exists] database_name;
+```
+
+
+
+## 数据表
+
+
+
+**创建表**
+
+```mysql
+CREATE TABLE table_name(
+	列名 类型 约束 备注,
+    ...
+);
+```
+
+
+
+**修改表**
+
+可以修改：
+
+* 列名
+* 表名
+* 类型
+* 约束
+* 添加列
+
+
+
+ALTER TABLE warn ADD COLUMN batch_id varchar(24);
+
+
+
+**修改列**
+
+```mysql
+ALTER TABLE table_name CHANGE COLUMN 旧列名 [新列名] 类型 [约束];
+```
+
+**添加列**
+
+```mysql
+ALTER TABLE table_name ADD COLUMN 列名 类型 [约束];
+```
+
+**删除列**
+
+```mysql
+ALTER TABLE table_name DROP COLUMN 旧列名 [新列名] 类型 [约束];
+```
+
+**修改表名**
+
+```mysql
+ALTE TABLE table_name RENAME TO new_table_name;
+```
+
+**删除表**
+
+```mysql
+DROP TABLE [if exists] table_name;
+```
+
+**复制表结构**
+
+```mysql
+CREATE TABLE table_name1 like table_name2
+```
+
+**复制表结构+数据**
+
+```mysql
+CREATE TABLE table_name1
+SELECT * FROM table_name2;
+```
+
+* 复制部分表结构/数据，可以加WHERE
+
+
+
+**临时表**
+
+
+
+# DML
+
+
+
+数据操作语言，用于对数据的增删改。
+
+
+
+## 插入
+
+
+
+* 支持批量插入
+
+* 支持子查询
+
+```mysql
+INSERT INTO table_name (filed1_name,...) VALUES(value1,...),(...);
+```
+
+插入的值的顺序与指定的列名顺序和个数相同
+
+
+
+```mysql
+INSERT INTO table_name VALUES(value1,...),(...);
+```
+
+插入的值的顺序表中所有列名顺序和个数相同
+
+
+
+## 修改
+
+
+
+**单表更新**
+
+```mysql
+UPDATE table_name
+SET column_name1=new_value,column_name2=new _value...
+[WHERE ...]
+```
+
+
+
+级联更新(只支持内联结)
+
+```mysql
+UPDATE table_name1,table_name2
+SET ...
+WHERE 联结条件 AND 筛选条件
+```
+
+
+
+## 删除
+
+
+
+```mysql
+DELETE FROM table_name
+where ...;
+```
+
+
+
+**删除整个表**
+
+```mysql
+TRUNCATE table table_name
+```
+
+
+
+**级联删除**
+
+```mysql
+DELETE table_name
+FROM table1,table2
+WHERE 联结条件
+AND 筛选条件
+```
+
+* DELETE后加要删除的表，两张表都需要删除时就都写上
+
+
+
+# DQL
+
+
+
+数据查询语言。
+
+```
+select  column(s) from table
+where  condition
+```
+
+
+
+select后都可以加什么？
+
+select可以理解成print
+
+
+
+**where**
+
+用来声明查询条件来限定行；可以通过AND、OR来组合条件。
+
+**计算次序**
+
+MySQL的计算次序是AND>OR,可以通过()改变优先级。
+
+
+
+**between** 
+
+where price between 100 and 200
+
+闭区间，可以是数值或日期
+
+
+
+**空值检查**
+
+is null
+
+is not null
+
+所有运算符与NULL计算结果都为NULL
+
+
+
+**and和or的顺序问题**
+
+and的优先级要高于or，可以使用()来指定优先级
+
+
+
+**in**
+
+()除了用来改变优先级，还可以来封装一组范围，与in连用，表示字段的值在范围内的都能匹配，()内的多个字段值用逗号隔开。
+
+in的作用等同于or但是执行效率要比or快
+
+in ()可以包含其他select语句
+
+
+
+**NOT**
+
+not的作用就是否定在它之后的条件
+
+MySQL中的not仅支持in，between，exists
+
+
+
+**like**
+
+前面的查询都是根据已知的值去查询，而模糊查询可以使用like+通配符来查询
+
+like表明后面的条件时根据通配符来查询而不是确定值
+
+%表示任何字符出现任何次
+
+_表示单个字符
+
+
+
+
+
+**distinct**
+
+实际
+
+* 往往只用它来返回不重复记录的条数，而不是用它来返回不重记录的所有值。其原因是distinct只能返回它的目标字段
+* distinct可以作用于多个字段，这样的含义是这多个字段不能同时相同
+* distinct必须放在(所有)字段的前面
+
+
+
+**分组**
+
+分组的作用就是根据条件将数据分成多组，对这多个组同时进行聚合计算。
+
+分组查询得到的结果是一行就是一个分组的聚合信息
+
+注意：
+
+* group by的主要作用是对分组进行聚合运算，所以select的目标只能是分组的条件和聚合函数
+* null也会分到一组
+
+
+
+**分组过滤**
+
+有时候不需要得到所有分组的聚合信息，可以通过having对分组查询的结果进行过滤。
+
+相当于分组查询返回了一张表，having再对这张表进行过滤
+
+
+
+**CASE**
+
+CASE  WHEN
+
+
+
+小结：
+
+select可以查什么？
+
+* 列名
+* 函数
+
+
+
+
+
+## 多表查询
+
+SQL最强大的功能就是能在数据检索时进行表联接
+
+
+
+**别名**
+
+起别名后，原表名不能使用
+
+
+
+```
+alibaba规范不要超过三个join
+```
+
+
+
+
+
+**笛卡尔积**
+
+* 笛卡尔积(交叉连接,CROSS JOIN)：每一行交叉连接，缺少连接条件
+* 在where中指定连接条件(等值连接与非等值连接)
+* 从SQL优化的角度，建议查询的字段都带上表名
+
+
+
+**内连接与外连接**
+
+内连接只包含匹配到的记录，外连接表示有表的记录是必须存在的
+
+
+
+**内连接**
+
+内连接可以在where中指定连接条件，也可以显示的用[inner] join连接
+
+```
+select * from tablea
+join tableb on tablea.xxx *** tableb.xxx
+join tableb on ......
+```
+
+另一种写法：join多张表，最后同一on
+
+```
+select * from tablea
+join tableb join tablec
+on tablea.xxx *** tableb.xxx and tablea.xxx *** tablec.xxx
+```
+
+
+
+
+
+**where连接与join on连接的区别**
+
+where是SQL92的写法，on是SQL99的写法。推荐使用ON
+
+
+
+**NATURAL JOIN**
+
+自动将两张表中字段相同的进行等值连接
+
+
+
+**using**
+
+进行等值连接,当两个字段名一样时可以用using简化
+
+```
+select * 
+from tableajoin tableb 
+using(xxx)
+```
+
+
+
+
+
+**外连接**
+
+外连接分为左外连接，右外连接，全外连接。常见场景是"查询所有"...。MySQL不支持全外连接。
+
+```
+select * from tablea
+left outer join tableb on tablea.xxx *** tableb.xxx
+```
+
+outer可以省略
+
+
+
+**UNION ALL**
+
+合并查询结果
+
+
+
+**UNION**
+
+合并查询结果，两个查询结果的列数和数据类型必须一致，去除重复部分。推荐使用UNION ALL，性能高。
+
+
+
+
+
+
+
+**MySQL如何实现全连接**
+
+
+
+7中JOIN的实现
+
+
+
+## 子查询
+
+
+
+规范：
+
+* 子查询放在主查询的右侧
+
+对一个查询结果集再进行查询，通常与in连用，也可以与=、<>使用。
+
+**从外往里写**：先写主干，在写子查询，最后将子查询放入主干
+
+***多个字段等于一个子查询***
+
+```
+where (x1,x2)=(select x1,x2 ...)
+```
+
+***HAVIN中的子查询***
+
+```
+
+```
+
+
+
+**子查询中的空值问题**
+
+子查询的查询结果是空的时不会报错
+
+
+
+多行子查询比较符
+
+| 操作符 | 含义                                               |
+| ------ | -------------------------------------------------- |
+| IN     | 任意一个                                           |
+| ANY    | 与单行比较符一起使用，与任意一个进行比较           |
+| ALL    | 与单行比较符一起使用，与子查询返回的所有值进行比较 |
+| SOME   | ANY的别名                                          |
+
+
+
+
+
+
+
+
+
+# DCL
+
+
+
+数据控制语言
+
+
+
+| 命令      | 描述 |
+| --------- | ---- |
+| COMMIT    |      |
+| ROLLBACK  |      |
+| SAVEPOINT |      |
+| GRANT     |      |
+
+
+
+# 函数
+
+
+
+**文本处理函数**
+
+| 函数     | 描述   |
+| -------- | ------ |
+| Upper()  | 转大写 |
+| Lower()  | 转小写 |
+| Length() | 长度   |
+
+
+
+**时间日期处理函数**
+
+![image-20210427183641528](/Users/chenguanlin/Documents/note/0img/mysql-date-fun.png)
+
+
+
+不管是插入更新还是查询，MySQL中的日期必须为yyyy-MM-dd的形式，常见的用法是用来获得年月日，查询某年/月/日的匹配的
+
+
+
+**数值处理函数**
+
+![image-20210427184430051](/Users/chenguanlin/Documents/note/0img/mysql-digit-fun.png)
+
+函数将自动忽略null
+
+
+
+**concat**
+
+concat函数用来将两个列的值拼接到一起
+
+注意：其他SQL是通过+或者||来实现拼接的
+
+```mysql
+CONCAT(str1,str2,...)
+```
+
+用列名和字符串完成拼接，可以理解成添加了一列
+
+
+
+**trim(列名)**
+
+用来去除空格，还有RTrim和LTrim
+
+
+
+# 函数
+
+
+
+函数的移植行不强，不赞成使用函数。
+
+
+
+**字符函数**
+
+| 函数名        | 描述                                                 |
+| ------------- | ---------------------------------------------------- |
+| length()      | 获取字节个数                                         |
+| concat()      | 多个字符串拼接成一个                                 |
+| upper()/lower | 统一大小写                                           |
+| substr()      | 多个重载，用法和Java一样(字符的长度)                 |
+| instar()      | 等效于Java的indexOf，没找到返回0                     |
+| trim()        | 默认去除空格,  trim('a' from 'absba')表示去除前后的a |
+| lpad() rpad   | 添加n个前缀/后缀                                     |
+| replace()     | 替换                                                 |
+
+
+
+SQL中的索引都是从1开始的
+
+
+
+**数学函数**
+
+| 函数       | 描述                                   |
+| ---------- | -------------------------------------- |
+| round()    | 四舍五入默认保留整数，可以指定小鼠位数 |
+| cell()     | 向上取整                               |
+| f'loor()   | 向下取整                               |
+| truncate() | 截取                                   |
+| mod        | 取余                                   |
+
+取余
+
+a%b=a-a/b*b
+
+
+
+**日期函数**
+
+| 函数        | 描述                             |
+| ----------- | -------------------------------- |
+| NOW()       | 返回日期时间                     |
+| CURDATE()   | 返回日期                         |
+| CURTIME()   | 返回时间                         |
+| YEAR()      | 获得日期中的年，传入带日期的参数 |
+| MONTH()     | 月                               |
+| DAY()       | 日，时分秒相同                   |
+| STR_TO_DATE |                                  |
+| DATE_TO_STR |                                  |
+| DATEDIFF    |                                  |
+
+
+
+**其他函数**
+
+| 方法       | 描述 |
+| ---------- | ---- |
+| version()  |      |
+| database() |      |
+| user()     |      |
+
+
+
+**聚合函数**
+
+有时我们只需要统计信息而不是具体的数据。
+
+| 聚合函数 | 描述   |
+| -------- | ------ |
+| AVG()    | 平均值 |
+| COUNT()  | 个数   |
+| MAX()    | 最大值 |
+| MIN()    | 最小值 |
+| SUN()    | 总和   |
+
+聚合函数都会忽略NULL，所以在WHERE时注意去掉NULL值
+
+聚合函数可以和IDSTINCT连用
+
+SUM(distinct 字段名)表示值不相同的和
+
+
+
+# 算数运算
+
+
+
+MySQL的算数运算就是算数运算，会将字符串转换成数字进行运算，不能转换的会被当成0；
+
+除法返回的是浮点型数据
