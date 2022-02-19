@@ -31,13 +31,23 @@
 
 
 
+可以看到四个系统自带的数据库：
+
+`information_schema`  保存元数据信息。 MySQL服务有多少个数据库，各个数据库有哪些表，各个表中的字段是什么数据类型，各个表中有哪些索引，各个数据库要什么权限才能访问 。
+
+`mysql`  保存用户信息
+
+`performace_schema`  收集数据库服务器性能参数； 提供进程等待的详细信息，包括锁、互斥变量、文件信息 
+
+`test`  空的数据库
+
+
+
 **创建数据库**
 
 ```mysql
 CREATE DATABASE [if not exists] database_name;
 ```
-
-
 
 **修改数据库**
 
@@ -55,11 +65,53 @@ ALTER DATABASE database_name CHARACTER SET utf8;
 DROP DATABASE [id exists] database_name;
 ```
 
+**查看权限**
+
+```
+show grants;
+```
+
+**查看错误/警告日志**
+
+```
+show errors/warnings;
+```
+
+**查看MySQL版本**
+
+登录MySQL后使用select version();
+
+或者不登录，直接使用 mysql --version获得mysql -V
+
 
 
 ## 数据表
 
 
+
+**查看都有哪些table**
+
+`show tables` 查看当前数据库中都有哪些表
+
+`show table from 数据库名` 查看指定数据库中有哪些表
+
+**查看字段**
+
+```mysql
+desc 表名;
+```
+
+或者
+
+```mysql
+show columns from 表名
+```
+
+**查看索引**
+
+```mysql
+show index from 表名
+```
 
 **创建表**
 
@@ -69,8 +121,6 @@ CREATE TABLE table_name(
     ...
 );
 ```
-
-
 
 **修改表**
 
@@ -82,11 +132,7 @@ CREATE TABLE table_name(
 * 约束
 * 添加列
 
-
-
 ALTER TABLE warn ADD COLUMN batch_id varchar(24);
-
-
 
 **修改列**
 
@@ -135,7 +181,84 @@ SELECT * FROM table_name2;
 
 
 
-**临时表**
+
+
+**六大约束**
+
+* 非空约束
+* 默认约束(自动填充默认值)
+* 唯一约束(允许有一个NULL)
+* 主键约束
+* 外键约束(用于限制两个表的关系，该值必须是另一个表的主键/唯一键)
+* check约束(MySQL不支持，是对数据类型，范围等约束  )
+
+
+
+**添加列级约束**
+
+```mysql
+CREATE TABLE table_name(
+	column_name type 约束 备注,
+    ...
+)
+```
+
+
+
+**添加表级约束**
+
+```mysql
+CREATE TABLE table_name(
+    ... ,
+    CONSTRAINT pk PRIMARY KEY (id),# 主键
+    CONSTRAINT uq UNIQUE(account),# 唯一约束
+    CONSTRAINT fk_主表_外表 FOREIGN KEY (edit_id) REFERENCES 表名(字段)
+)
+```
+
+* `CONSTRAINT 约束名` 可以省略
+* 一般只在表级约束中添加外键约束，其他约束在列级约束中定义
+* 可以添加多个约束
+
+
+
+**修改表的时候添加约束**
+
+列级约束
+
+```mysql
+ALERT TABLE table_name MODIFY COLUNM colunm_name 类型 约束
+```
+
+表级约束
+
+```mysql
+ALERT TABLE table_name [CONSTRSINT name] ADD PRIMARY KE(id)
+```
+
+
+
+**修改表的时候删除约束**
+
+
+
+```mysql
+ALERT TABLE table_name MODIFY COLUNM colunm_name
+```
+
+
+
+```mysql
+ALERT TABLE table_name DROP PRIMARY KEY
+```
+
+
+
+```mysql
+ALERT TABLE table_name DROP INDEX index_name;
+```
+
+
 
 
 
@@ -310,8 +433,6 @@ _表示单个字符
 
 
 
-
-
 **distinct**
 
 实际
@@ -331,6 +452,7 @@ _表示单个字符
 注意：
 
 * group by的主要作用是对分组进行聚合运算，所以select的目标只能是分组的条件和聚合函数
+* 可以按照多个字段进行分组
 * null也会分到一组
 
 
@@ -349,12 +471,17 @@ CASE  WHEN
 
 
 
-小结：
+**排序**
 
-select可以查什么？
+order by，对查询结果(基础查询，分组查询，子查询，联结查询)进行排序
 
-* 列名
-* 函数
+通过order by,来指定一个或多个字段来进行排序
+
+```mysql
+order by 字段1 [desc], 字段2 [desc];
+```
+
+a和A的比较取决于数据库如何设置
 
 
 
@@ -394,7 +521,7 @@ alibaba规范不要超过三个join
 
 
 
-**内连接**
+### **内连接**
 
 内连接可以在where中指定连接条件，也可以显示的用[inner] join连接
 
@@ -414,17 +541,9 @@ on tablea.xxx *** tableb.xxx and tablea.xxx *** tablec.xxx
 
 
 
-
-
 **where连接与join on连接的区别**
 
 where是SQL92的写法，on是SQL99的写法。推荐使用ON
-
-
-
-**NATURAL JOIN**
-
-自动将两张表中字段相同的进行等值连接
 
 
 
@@ -440,9 +559,21 @@ using(xxx)
 
 
 
+**非等值联结**
+
+连接条件不再由`=`连接
+
+比如根据薪水去联结员工等级表，薪水在某一区间的联结到某一等级
 
 
-**外连接**
+
+**自联结**
+
+(等值联结)，一张表需要查询两次，就可以写成自联结
+
+
+
+### **外连接**
 
 外连接分为左外连接，右外连接，全外连接。常见场景是"查询所有"...。MySQL不支持全外连接。
 
@@ -464,10 +595,6 @@ outer可以省略
 **UNION**
 
 合并查询结果，两个查询结果的列数和数据类型必须一致，去除重复部分。推荐使用UNION ALL，性能高。
-
-
-
-
 
 
 
@@ -511,6 +638,15 @@ where (x1,x2)=(select x1,x2 ...)
 
 
 
+**子查询可以的位置**
+
+* WHERE/HIVING后面
+* SELECT后
+* FROM
+* EXISTS(用来判断子查询有没有值)
+
+
+
 多行子查询比较符
 
 | 操作符 | 含义                                               |
@@ -520,19 +656,49 @@ where (x1,x2)=(select x1,x2 ...)
 | ALL    | 与单行比较符一起使用，与子查询返回的所有值进行比较 |
 | SOME   | ANY的别名                                          |
 
+* ANY/SOME/ALL都可以替代，中文比较难理解，一般用的很少这三个。
+* IN后面的子查询，最好看看能不能DISTINCT
 
 
 
+**子查询可以的位置**
+
+* WHERE/HIVING后面
+* SELECT后
+* FROM
+* EXISTS(用来判断子查询有没有值)
 
 
+
+## **计算字段**
+
+有许多存储在数据库中的值和程序需要的字段值在格式或者组合上是不一致的，需要检索出来后经过格式转换，计算等再返回给客户端。
+
+计算字段是运行SELECT语句时创建的。
+
+
+
+**字符串计算**
+
+**concat()**
+
+将括号里面的所有值拼接成一个字符串
+
+**RTrim()**
+
+
+
+**数字计算**
+
+加减乘除
 
 
 
 # DCL
 
+Transaction Control Language
 
-
-数据控制语言
+一组SQL语句组成一个单元，要么全执行，要么全失败(即失败的时候不能对数据库产生影响)。
 
 
 
