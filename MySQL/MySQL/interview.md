@@ -2445,15 +2445,3 @@ B Tree又称为平衡多路查找树
 
 
 
-
-# MyBatis
-
-
-
-**什么是MyBatis**
-
-
-
-
-
-![1638978133100](E:\note\databases\note\img\1638978133100.png)
