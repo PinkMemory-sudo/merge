@@ -125,3 +125,8 @@ ORM映射相关的resultMap
 
 
 
+# 映射
+
+
+
+DECIMAL怎么映射
