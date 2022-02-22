@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.pk.springboot.mapper.CompanyMapper">
+
+
+
+<!--    int add(CompanyEntity companyEntity);-->
+
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        INSERT  INTO company (name)
+        VALUES(#{name})
+    </insert>
+
+
+<!--    CompanyEmp findEmp(int companyId);-->
+    <resultMap id="CompanyEmp" type="com.pk.springboot.model.CompanyEmp">
+        <id column="id" property="id"/>
+        <collection property="userEntityList" ofType="UserEntity">
+            <id column="uid" property="id"/>
+            <result column="uname" property="name"/>
+        </collection>
+    </resultMap>
+    <select id="findEmp" resultMap="CompanyEmp">
+        SELECT c.id id, c.name name, u.id uid, u.name uname,u.age,u.company_id
+        From company c left join user u on c.id=u.company_id
+        WHERE c.id=#{companyId}
+    </select>
+
+
+</mapper>

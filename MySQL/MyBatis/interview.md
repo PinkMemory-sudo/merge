@@ -45,10 +45,6 @@ mybatis是一个半自动的ORM框架，对JDBC进行了封装，是的我们只
 
 
 
-**mybatis工作原理**
-
-
-
 **mybatis如何进行分页，分页的原理**
 
 
@@ -125,7 +121,7 @@ ORM映射相关的resultMap
 
 
 
-**mybatis常用的注解**
+**mybatis常用的标签**
 
 
 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.pk.springboot.mapper.UserMapper">
+
+    <select id="count" resultType="int">
+        SELECT count(*) FROM user
+    </select>
+
+    <!--    int add(UserEntity userEntity);-->
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+        INSERT  INTO user (name,age)
+        VALUES(#{name},#{age})
+    </insert>
+    
+    <resultMap id="UserInfo" type="com.pk.springboot.model.UserInfo">
+        <id column="uid"  property="id"/>
+        <result column="name" property="name"/>
+        <result column="age" property="age"/>
+        <result column="pid" property="companyId"/>
+        <result column="useName" property="name"/>
+        <association property="companyEntity" javaType="CompanyEntity">
+            <id column="pid"  property="id"/>
+            <result column="pname" property="name"/>
+        </association>
+    </resultMap>
+
+<!--    UserInfo getUserInfoById(int id);-->
+    <select id="getUserInfoById" resultMap="UserInfo">
+        SELECT u.id uid,u.name name,u.age age,p.id pid,p.name pname
+        from user u LEFT JOIN company p ON u.company_id=p.id
+        WHERE u.id=#{id}
+    </select>
+
+<!--    List<UserEntity> getAll();-->
+    <select id="getAll" resultType="UserEntity">
+        SELECT * FROM user
+    </select>
+
+
+
+</mapper>
