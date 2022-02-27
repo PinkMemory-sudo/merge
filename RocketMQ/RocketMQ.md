@@ -448,6 +448,30 @@ Error:java: 读取/Users/chenguanlin/.m2/repository/org/springframework/spring-c
 
 ## 生产者发送消息
 
+
+
+**同步发送**
+
+Producer向broker发送消息，阻塞当前线程等待broker响应发送结果
+
+
+
+**异步发送**
+
+Producer 首先构建一个向 broker 发送消息的任务，把该任务提交给线程池，等执行完该任务时，回调用户自定义的回调函数，执行处理结果。
+
+
+
+**Oneway发送**
+
+Oneway 方式只负责发送请求，不等待应答，Producer只负责把请求发出去，而不处理响应结果。
+
+
+
+默认使用的是同步发送，这样消息丢失的几率最小
+
+
+
 ![1645844795807](C:\Users\11942\AppData\Roaming\Typora\typora-user-images\1645844795807.png)
 
 
