@@ -451,29 +451,48 @@ MyISAM强调性能，但是也不一定比InnoDB快，尤其是使用到聚簇�
 
 
 
-流程：
-
-主从复制涉及到三个线程：
-
-主节点 binary log dump 线程
-
-主节点 binary log dump 线程
-
-1.  Master 将写操作记录到二进制日志( binlog )
-2. Slave 将 Master 的binary log events拷贝到它的中继日志( relay log )
-3. Slave 重做中继日志中的事件，将改变应用到自己的数据库中。 MySQL复制是异步的且串行化 的，而且重启后从 接入点 开始复制。
+如果要提高并发，首先应该考虑的是优化SQL和索引，其次是缓存，最后再考虑对数据库进行分库分表。
 
 
 
+**主从复制原理**
+
+Master将操作写入binlog，Slave拉取Master的binlog拷贝到relaylog，Slave读取relaylog，同步数据
+
+Slave 会从 Master 读取 binlog ，通过Master的一个和Slave的两个线程来进行数据同步。
 
 
-## 使用
+
+**Master线程**
+
+
+
+**从库IO线程**
+
+拉取Master的binlig，写入本地的relaylog
+
+
+
+**从库SQL线程**
+
+读取relaylog，同步数据
+
+
+
+## 一主一从的搭建
 
 
 
 **配置master**
 
-1. 修改配置
+1. 修改MySQLServer的UUID
+
+```shell
+vim /var/lib/mysql/auto.cnf
+systemctl restart mysqld
+```
+
+2. 配置文件
 
 ```
 #[必须]主服务器唯一ID 
@@ -500,9 +519,18 @@ CHANGE MASTER TO
 MASTER_HOST='主机的IP地址', MASTER_USER='主机用户名', MASTER_PASSWORD='主机用户名的密码', MASTER_LOG_FILE='mysql-bin.具体数字', MASTER_LOG_POS=具体值;
 ```
 
+3. SLAVE同步
+
+```bash
+#启动slave同步 
+START SLAVE;
+```
 
 
 
+## 多主多从的搭建
+
+需要使用mycat
 
 
 
@@ -707,14 +735,7 @@ redo和undo都是一种恢复操作，redo是物理层的修改记录着物理�
 
 
 
-redo日志降低了刷盘的频率，事务执行过程中，redo log不断记录。
-
-
-
-**为什么不直接刷到页中**
-
-* 频繁进行IO操作
-* 页可能并不是连续的
+事务写数据时并不会写一条就刷到磁盘中一条，而是记录到redolog中它的变化，宕机是可以从redolog中恢复。
 
 
 
@@ -744,7 +765,7 @@ redo日志降低了刷盘的频率，事务执行过程中，redo log不断记�
 
 即buffer什么时候刷如file：定时/每次提交/交给操作系统
 
-redo log buffer刷盘到redo log file的过程并不是真正的刷到磁盘中去，只是刷入到 文件系统缓存 (page cache)中去。真正的写入会交给系 统自己来决定。那么对于InnoDB来说就存在一个问题，如果交给系统来同 步，同样如果系统宕机，那么数据也丢失了。针对这种情况，InnoDB给出 innodb_flush_log_at_trx_commit 参数，该参数控制 commit提交事务 时，如何将 redo log buffer 中的日志刷新到 redo log file 中。它支持三种策略：
+redo log buffer刷盘到redo log file的过程并不是真正的刷到磁盘中去，只是刷入到文件系统缓存 (page cache)中去。真正的写入会交给系 统自己来决定。那么对于InnoDB来说就存在一个问题，如果交给系统来同 步，同样如果系统宕机，那么数据也丢失了。针对这种情况，InnoDB给出 innodb_flush_log_at_trx_commit 参数，该参数控制 commit提交事务 时，如何将 redo log buffer 中的日志刷新到 redo log file 中。它支持三种策略：
 
 * 设置为0 :表示每次事务提交时不进行刷盘操作。(系统默认masterthread每隔1s进行一次重做日 志的同步
 * 设置为1:表示每次事务提交时都将进行同步，刷盘操作(默认)
@@ -753,7 +774,32 @@ redo log buffer刷盘到redo log file的过程并不是真正的刷到磁盘中�
 
 
 
+**如何保证数据最终落盘**
+
+
+
+**为什么不直接刷到页中**
+
+* 频繁进行IO操作
+* 页可能并不是连续的
+
+
+
+**Checkpoint机制**
+
+* 当数据库发生宕机时，数据库不需要重做所有的日志，因为Checkpoint之前的页都已经刷新回磁盘。数据库只需对Checkpoint后的重做日志进行恢复，这样就大大缩短了恢复的时间。
+* 循环利用redolog，当writepos追上checkpiont时，表示redolog满了，checkpoint需要前进一下
+* 缓冲区大小优先
+
+
+
 ## undo log
+
+
+
+进行回滚和MVCC
+
+
 
 undo log是事务原子性的保证。在事务中增删改之前实际要先写入一个 undo log ，记录更改之前的数据。
 
@@ -783,8 +829,6 @@ undo log的产生也伴随着redolog，因为undolog也需要持久化
 
 
 当事务提交时，InnoDB存储引擎会做以下两件事情
-
-1. 
 
 
 
@@ -818,7 +862,41 @@ redolog是存储引擎产生的，binlog是数据库产生的，如果一个事�
 
 
 
-按照锁的粒度：行级锁，表级锁，页锁。
+作用：用来实现并发事务的隔离级别
+
+数据库中的数据是共享的，因此在并发事务对数据进行操作时需要加锁。
+
+
+
+**并发事务的操作**
+
+**读读**
+
+都是读取，不会产生问题，不会加锁。
+
+**写写**
+
+同一时间智能有一个事务进行写，需要加锁。记录和锁结构之间刚开始没有关系，当一个事务需要对记录进行修改时，会先查看有没有锁结构与之关联，没有是就创建一个锁结构与之关联。获得锁成功之后才继续执行事务，获取锁失败会进入等待。
+
+**读写**
+
+一个事务进行读另一个事务进行写时，可能会出现赃读幻读不可重读的情况。
+
+解决方案：读操作进行MVCC，写操作加锁。读已提交和可重读使用到了MVCC。在读已提交中，事务每执行SELECT时会生成一个ReadView，ReadView本省就保证了不会读取未提交的事务。在可重读中，只有在第一次执行SELECT是才会生成一个ReadView，之后的SELECT都会复用这个ReadView
+
+
+
+
+
+**锁的分类**
+
+按照锁的粒度：
+
+行级锁：
+
+表级锁：读写锁，意向锁
+
+页锁：
 
 按操作类型分：共享锁，排它锁
 
@@ -924,6 +1002,8 @@ Next-keyLocks
 
 
 **什么是MVCC**
+
+主要用来实现在读写冲突的情况下，实现一致性非锁定读，提高并发能力。即在读取数据遇到锁的情况下，不会等待锁的释放，而是去读快照数据(undolog),一个记录有可能不止一个快照，所以有称为多版本并发控制。
 
 MVCC本质是采用乐观锁思想进行读数据。利用undolog,readview,隐藏字段实现，主要解决读写冲突，提高并发性能。
 
