@@ -386,6 +386,8 @@ String str="hello world"， 在编译期，JVM会去常量池来查找是否存�
 
 String str=new String("hello world")：在编译阶段JVM先去常量池中查找是否存在“abc”，如果过不存在，则在常量池中开辟一个空间存储“abc”。在运行时期，通过String类的构造器在堆内存中new了一个空间，然后将String池中的“abc”复制一份存放到该堆空间中，在栈中开辟名字为str2的空间，存放堆中new出来的这个String对象的地址值。
 
+ 
+
 
 **String a = "hello2"; String b = "hello" + 2; System.out.println((a == b));会输出什么**
 
@@ -1032,8 +1034,6 @@ TreeSet 底层使用红黑树，能够按照添加元素的顺序进行遍历，
 
   
 
-
-
 **怎么唤醒一个阻塞的线程**
 
 如果是wait、sleep，join
@@ -1153,16 +1153,6 @@ Java的并发采用的是共享内存模型，整个通信过程对我i们来说
 LinkedBlockingQueue无界
 
 DelayedWorkQueue延迟执行任务
-
-
-
-**execute()方法和 submit()方法的区别**
-
-* execute() 方法用于提交不需要返回值的任务，所以无法判断任务是否被线程池执行成功与否;
-
-* submit() 方法用于提交需要返回值的任务。线程池会返回一个 Future 类型的对象，通过这个 Future 对象可以判断任务是否执行成功
-
-
 
 
 
