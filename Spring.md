@@ -44,10 +44,10 @@ BeanFactory 所有可实现的功能，还具备其他更多的功能。
 
 **Spring bean 的生命周期**
 
-1. Spring启动，查找并加载需要被Spring管理的bean，进行Bean的实例化
-2. Bean实例化后对将Bean的引入和值注入到Bean的属性中
-3. 如果Bean实现了BeanNameAware接口的话，Spring将Bean的Id传递给setBeanName()方法
-4. 如果Bean实现了BeanPostProcessor接口，Spring就将调用他们的postProcessBeforeInitialization()方法。
+1. 如果Bean实现了BeanPostProcessor接口，实例化之前Spring就将调用他们的postProcessBeforeInitialization()方法。
+2. 如果Bean 实现了InitializingBean接口，初始化时Spring将调用他们的afterPropertiesSet()方法。类似的，如果bean使用init-method声明了初始化方法，该方法也会被调用
+3. 如果Bean 实现了BeanPostProcessor接口，Spring就将调用他们的postProcessAfterInitialization()方法。
+4.  bean实现了DisposableBean接口，Spring将调用它的destory()接口 
 
 
 
@@ -182,12 +182,6 @@ Service接口方法可能会在内部调用其它的Service接口方法以共同
 
 
 
-**自动配置原理**
-
-通过判断类路径下有没有相应配置的jar包来确定是否加载和配置这个功能，读取jar包下的配置文件，将需要的bean注入到spring容器中
-
-
-
 **SpringBoot的核心注解，主要有哪几个注解组成**
 
 @SpringBootApplication，主要由@SpringBootConfiguration，@EnableAutoConfiguration，@ComponentScan三个注解组成
@@ -196,7 +190,7 @@ Service接口方法可能会在内部调用其它的Service接口方法以共同
 
 @ComponentScan：自动扫描本包和子包路径下的 @Component(以及@Service等) 注解进行注册 bean 实例到 context 中
 
-@EnableAutoConfiguration：开启自动配置，通过@Import，根据有什么依赖判断开启某个功能，注入到Spring容器，导入META-INF/spring.factories里自定义的配置类。每个自动配置类从xxxProperties.java读取配置
+@EnableAutoConfiguration：通过判断类路径下有没有相应配置的jar包来确定是否加载和配置这个功能，读取jar包下的配置文件，将需要的bean注入到spring容器中。
 
 
 
