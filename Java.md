@@ -527,6 +527,58 @@ Java中专门针对版本号的东西
 
 ### AQS
 
+AQS 的全称为( AbstractQueuedSynchronizer ）AQS 是一个用来构建锁和同步器的框架。ReentrantLock ， Semaphore ，其他的诸如ReentrantReadWriteLock ， SynchronousQueue ， FutureTask 等等皆是基于 AQS 的。
+
+
+
+AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线 程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占用，那么就需要一套线程阻塞 等待以及被唤醒时锁分配的机制，这个机制 AQS 是用 CLH 队列锁实现的，即将暂时获取不到锁 的线程加入到队列中。
+
+AQS 使用 CAS 对该同步状态进行原子操作实现对其值的修改。状态信息通过 protected 类型的 getState，setState，compareAndSetState 进行操作。
+
+以 ReentrantLock 为例，state 初始化为 0，表示未锁定状态。A 线程 lock()时，会调用 tryAcquire()独占该锁并将 state+1。此后，其他线程再 tryAcquire()时就会失败，直到 A 线程 unlock()到 state=0(即释放锁)为止，其它线程才有机会获取该锁。当然，释放锁之前，A 线程 自己是可以重复获取此锁的(state 会累加)，这就是可重入的概念。但要注意，获取多少次就 要释放多么次，这样才能保证 state 是能回到零态的。
+
+再以 CountDownLatch 以例，任务分为 N 个子线程去执行，state 也初始化为 N(注意 N 要与线 程个数一致)。这 N 个子线程是并行执行的，每个子线程执行完后 countDown() 一次，state 会 CAS(Compare and Swap)减 1。等到所有子线程都执行完后(即 state=0)，会 unpark()主调用线 程，然后主调用线程就会从 await() 函数返回，继续后余动作。
+
+自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护(如获取资源失败入队/唤醒出队 等)，AQS 已经在顶层实现好了。
+
+
+
+AQS 定义两种资源共享方式
+Exclusive(独占):只有一个线程能执行，如 ReentrantLock 。又可分为公平锁和非公平锁:
+公平锁:按照线程在队列中的排队顺序，先到者先拿到锁
+非公平锁:当线程要获取锁时，无视队列顺序直接去抢锁，谁抢到就是谁的 Share(共享):多个线程可同时执行，如
+ Semaphore 、 CountDownLatch 、 CyclicBarrier 、 ReadWriteLock 我们 都会在后面讲到。
+
+
+
+#### 组件
+
+* **Semaphore** **(**信号量**)-**允许多个线程同时访问: synchronized 和 ReentrantLock 都是一次只 允许一个线程访问某个资源， Semaphore (信号量)可以指定多个线程同时访问某个资源。
+* **CountDownLatch** (倒计时器): CountDownLatch 是一个同步工具类，用来协调多个线 程之间的同步。这个工具通常用来控制线程等待，它可以让某一个线程等待直到倒计时结 束，再开始执行。
+* **CyclicBarrier** **(**循环栅栏**)**: CyclicBarrier 和 CountDownLatch 非常类似，它也可以实现线 程间的技术等待，但是它的功能比 CountDownLatch 更加复杂和强大
+
+
+
+**CountDownLatch与CyclicBarrier的区别**
+
+
+
+**用过 CountDownLatch 么?什么场景下用的?**
+
+实际可以用Java8的CompletableFuture
+
+
+
+**CompletableFuture**
+
+实现了Future和CompletionStage
+
+
+
+**then**
+
+**when**
+
 
 
 ### 原子操作类
@@ -814,11 +866,13 @@ Java虚拟机栈可能会出现两种错误：StackOverFlowError 和 OutOfMemory
 
 虚拟机栈中引用的对象
 
+本地方法栈中引用的对象
+
 方法区中类静态属性引用的对象
 
 方法区中常量引用的对象
 
-本地方法栈中引用的对象
+
 
 
 
@@ -840,6 +894,50 @@ jmap，jstack 的使用等等
 
 
 
+
+
+# 设计模式
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # 算法
 
 **十大排序算法**
@@ -847,6 +945,10 @@ jmap，jstack 的使用等等
 
 
 **堆排序概念**
+
+
+
+
 
 
 
