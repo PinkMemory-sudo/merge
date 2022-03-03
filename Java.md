@@ -332,10 +332,9 @@ JDK1.8
 
 **sleep方法和wait方法的异同**
 
-* 都会是线程进入阻塞状态，sleep不会释放锁，wait会释放锁。
-* wait使用前提是先获得锁，通过锁调用wait方法
+* wait是Object的方法，sleep是Thread的静态方法
 
-* sleep到时间后继续执行wait() 方法被调用后，线程不会自动苏醒，需要别的线程调用同一个对象上的 notify() 或 者 notinotify动苏醒。
+* wait需要锁，会释放锁，sleep不需要锁，不会释放锁
 
 
 
@@ -389,9 +388,9 @@ synchronized 关键字是防止多个线程同时执行一段代码，那么就�
 
 
 
-synchronized关键字用来解决线程间的同步问题，synchronized修饰的方法和代码块在同一时间只能被一个线程执行。
+**对Synchronized的了解**
 
-synchronized关键字可以用来修饰实例方法，静态方法和代码块。修饰实例方法时，使用的锁对象时this，修饰静态方法时，使用的时当前类的Class对象，修饰代码块时自己指定锁对象。
+synchronized用来进行线程同步的，代码块synchronized修饰的方法和代码块在同一时间只能被一个线程执行。synchronized关键字可以用来修饰实例方法，静态方法和代码块。修饰实例方法时，使用的锁对象时this，修饰静态方法时，使用的时当前类的Class对象，修饰代码块时自己指定锁对象。
 
 
 
@@ -440,6 +439,16 @@ JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋�
 * Synchronized会自动释放锁， ReentrantLock  需要手动释放
 * 临界区发生异常时，synchronized会释放锁。 ReentrantLock  不会
 * synchronized是公平的锁，ReentrantLock  可以实现非公平锁
+
+
+
+**Synchronized与Lock的对比**
+
+* Lock需要用户自己释放锁，但范围更灵活
+* Lock可以超时自动释放
+* Lock可以关联多个Condition
+
+
 
 
 
