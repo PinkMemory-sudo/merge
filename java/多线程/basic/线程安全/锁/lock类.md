@@ -155,7 +155,7 @@ wait/notify总结：
 
 
 
-
+# 容器
 
 
 
@@ -165,5 +165,180 @@ wait/notify总结：
 
 
 
-* 线程安全
-* 它最适合于具有以下特征的应用程序:List大小通常保持很小，只读操作远多 于可变操作，需要在遍历期间防止线程间的冲突。
+它相当于线程安全的 ArrayList，其中所有可变操作（add,set等）都是通过底层数组的进行一次新的复制产生的。
+
+适合经常查询不经常修改的场景
+
+
+
+
+
+# CountDownLatch
+
+
+
+适用场景：n个任务完成后，才进行下一步操作
+
+
+
+创建CountDownLatch，构造方法指定n
+
+完成一个任务时，执行countDownLatch.countDown();
+
+主线程countDownLatch.await();
+
+计数器为0时，会唤醒父线程
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# CyclicBarrier
+
+循环阻塞，屏蔽够n个线程后才继续进行
+
+
+
+等到所有线程都到达一个屏障点才退出await方法
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Semaphore
+
+
+
+2个停车位，3两汽车。
+
+类似与Lock，不过它有多把锁。
+
+构造方法指定最大信号量：Semaphore semaphore = new Semaphore(1);
+
+线程需要操作资源时，必须现货的整数semaphore.acquire();
+
+处理完后通过semaphore.release();释放。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# BlockingQueue
+
+ArrayBlockingQueue定长的阻塞队列
+
+ArrayBlockingQueue 在生产者放入数据和消费者获取数据，都是共用同一个 锁对象，由此也意味着两者无法真正并行运行
+
+
+
+**DelayQueue**到时间后才能被获取
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# CompletableFuture
