@@ -1,5 +1,40 @@
 # 概述
 
+
+
+**为什么需要注册中心**？
+
+小诊所和医院的区别。服务多时就不好管理了。
+
+如果直接调用，一个服务发生变化时，其他与它相关的服务都要进行修改
+
+
+
+**功能**
+
+* 服务注册与发现
+* 负载均衡
+* 服务熔断
+* 服务降级
+
+
+
+**原理**
+
+Eureka采用CS架构，注册中心作为服务端，其他微服务作为客户端，客户端把自己的信息注册到服务端，并与服务端保持心跳，其他服务就可以通过注册中心获得其他服务。
+
+
+
+**客户端**
+
+可以进行负载均衡
+
+
+
+**心跳**
+
+
+
 已经停止更新，但大部分厂商还在使用
 
 为什么用服务注册中心？
@@ -32,23 +67,11 @@ CS架构，所以可以类比MySQL，服务需要在配置文件中配置连接
 
 
 
-## CAP理论
-
-
-
-## 名词
-
-**实例**：多个又相同服务明的服务组成一个实例
-
-
-
 ## Eureka的自我保护机制
 
-高可用的设计理念
+现象：页面出现红色的字(短时间多个微服务挂了,Eureka不会立即清理，依然会对该微服务进行保存)
 
-
-
-现象：页面出现红色的字(短时间多个微服务挂了)
+高可用的设计理念中的AP理论 
 
 Eureka Server将会尝试保护服务注册表信息，不移除服务。术语CPA里面的AP。
 
@@ -70,7 +93,11 @@ Eureka Server将会尝试保护服务注册表信息，不移除服务。术语C
 
 
 
-## Eureka server的配置
+## 搭建单机的服务中心
+
+
+
+### EurekaServer
 
 1. 添加依赖
 
@@ -80,8 +107,6 @@ Eureka Server将会尝试保护服务注册表信息，不移除服务。术语C
      <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
    </dependency>
    ```
-
-   
 
 2. 启动类上加注解
 
@@ -106,9 +131,7 @@ eureka.server.enable-self-preservation=false
 
 
 
-## Eureka Client
-
-
+### Eureka Client
 
 1. 添加依赖
 
@@ -125,7 +148,7 @@ eureka.server.enable-self-preservation=false
 @EnableEurekaClient  // 或者@EnableDiscoveryClient
 ```
 
-@EnableDiscoveryClient 可以是其他注册中心,是官方推荐的
+@EnableDiscoveryClient是通用的， 可以是其他注册中心,官方推荐的
 
 1. 配置连接
 
@@ -139,9 +162,11 @@ eureka.client.service-url.defaultZone=http://localhost:8001/eureka/
 
 
 
-## Eureka server集群
+## 搭建高可用的服务中心
 
-注册中心往往不能是单个的，要用集群来实现高可用
+
+
+注册中心往往不能是单个的，要用集群来实现高可用防止单点故障。所以可以由多个Eurekashi'li
 
 互相注册，相互守望，对外暴露一个整体
 
@@ -166,28 +191,21 @@ eureka.client.service-url.defaultZone=http://localhost:8002/eureka/
 
 
 
-其他服务要将自己注册到全部的注册中心
+**其他服务要将自己注册到全部的注册中心**
+
+配置多个数据中心，逗号隔开
 
 ```properties
-server.port=8011
-spring.application.name=provider01
-# 配置注册中心的连接，默认会注册和拉取服务
 eureka.client.service-url.defaultZone=http://localhost:8001/eureka/,http://localhost:8002/eureka/
 ```
 
-
-
-**Eureka client**
-
-只需要在url.defaultZone中指定所有注册中心
-
-
-
-## *Eureka client集群*
+### *Eureka client集群*
 
 把某个服务启动多个，都注册到注册中心，保持application-name不变
 
+？
 
+instanceId
 
 ```properties
 # 是否允许开启自我保护模式，缺省：true
@@ -232,7 +250,9 @@ eureka.instance.health-check-url-path = /health
 
 
 
-# DiscoveryClient
+# 服务发现
+
+
 
 对于注册到Eureka里的微服务，通过服务发现来获得该服务的信息。
 
@@ -253,7 +273,17 @@ discoveryClient.getInstancesById()
 
 
 
-# Ribbon
+# 负载均衡
+
+
+
+**client集成了ribbon**
+
+
+
+消费者通过服务名去调用服务，一个服务可以由多个实例，应该去调用哪一个？
+
+@LoadBalance赋予RestTemplate负载均衡的能力
 
 * 服务调用者负载均衡工具，Eureka-Client已经集成了Ribbon，现在已经换成LoadBalence了
 * 不再更新，已经进入维护状态
@@ -270,25 +300,29 @@ discoveryClient.getInstancesById()
 
 
 
-**替换Ribbon的载均衡算法**
+
+
+**Ribbon的负载均衡策略**
+
+
+
+
+
+**怎么替换Ribbon的载均衡算法**
 
 就是自己注入一个IRule
 
 
 
-**IRule接口**
+**定制化设置**
+
+调用不同服务使用的负载均衡策略不一样
 
 
-
-**RoundRobinRule**
 
 轮询算法
 
-
-
 RandomRule
-
-
 
 RetryRule
 

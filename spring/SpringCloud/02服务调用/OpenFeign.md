@@ -1,4 +1,6 @@
-服务的所有功能通过接口的方式暴露给其他服务。
+服务的所有功能通过接口的方式暴露给其他服务。OpenFeign相当于一个声明式的HTTP客户端，等效于RestTemplate+Ribbon.
+
+
 
 服务接口的调用
 
@@ -12,7 +14,10 @@ Feign已经停止更新
 
 
 
+？
 
+* 参数的传递
+* 结果的转换
 
 
 
@@ -35,7 +40,7 @@ Feign已经停止更新
 
    `@EnableFeignClients`
 
-3. **接口+注解，面向接口编程**
+3. 定义接口
 
    服务提供者通过Controller层的接口对外提供功能
 
@@ -50,7 +55,7 @@ Feign已经停止更新
     }
 ```
 
-服务消费者的接口
+服务消费者的接口，接口用@FeignClient指定要使用的服务名，方法上添加Mapping指定要调用的接口。
 
 ```java
 @FeignClient("provider01")
@@ -65,7 +70,7 @@ public interface Hello {
 
 
 
-**超时**
+## **超时控制**
 
 openFeign默认的超时时间是1s，但是某些接口确实耗时，超时控制由ribbon设置
 
@@ -78,9 +83,9 @@ ribbon.ConnectTimeout=2000
 
 
 
-**OpenFeign日志**
+## **OpenFeign日志**
 
-如果需要查看OpenFeign调用的状态码，返回值细节时如何配置
+如果需要查看OpenFeign调用的细节，返回值细节时如何配置
 
 
 
@@ -120,7 +125,5 @@ logging.level.com.pk.consumer8021.controler.Test=debug
 
 
 
-负载均衡：
 
-OpenFeign也内置了Ribbon
 
