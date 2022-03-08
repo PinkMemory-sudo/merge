@@ -87,10 +87,9 @@ finalize 是 Object 类的一个方法，在垃圾收集器执行的时候会调
 
 * StreamAPI
 * TimeAPI
-
-* lambda表达式
+* lambda表达式: 允许把函数作为一个方法的参数 
 * 函数式接口
-
+* 接口添加默认方法
 * 方法引用
 * 取消永久代
 
@@ -900,48 +899,6 @@ Java虚拟机栈可能会出现两种错误：StackOverFlowError 和 OutOfMemory
 **内存泄露怎么定位**
 
 jmap，jstack 的使用等等
-
-
-
-
-
-# 设计模式
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
