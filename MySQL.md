@@ -413,6 +413,12 @@ redolog是存储引擎产生的，binlog是数据库产生的，如果一个事�
 
 
 
+
+
+
+
+
+
 # MVCC
 
 
@@ -426,3 +432,149 @@ redolog是存储引擎产生的，binlog是数据库产生的，如果一个事�
 
 
 # MyBatis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 机试题
+
+
+
+**建表语句**
+
+```
+DROP TABLE IF EXISTS `salary`;
+CREATE TABLE `salary` (
+  `id`int(11) NOT NULL,
+  `name`varchar(10) NOT NULL,
+  `sex`varchar(10) NOT NULL,
+ `salary` int(11) NOT NULL,
+  PRIMARYKEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+
+
+**插入语句**
+
+```
+INSERT INTO `salary`(字段...) VALUES ('1', 'A', 'm','2500');
+```
+
+与表一致时字段可以省略
+
+
+
+
+
+
+
+**每个部门的前三名**
+
+
+
+**将sex字段的值f变成m，将m变成f**
+
+set sex=if(sex="f","m","f")
+
+
+
+**第二高的薪水**
+
+```
+ORDER BY Salary DESC
+limit 1,1
+```
+
+
+
+**排名，带序号**
+
+```
+SELECT Score,(
+    SELECT COUNT(DISTINCT s.Score)
+    FROM Scores s
+    WHERE s.Score >= Scores.Score) AS Rank
+FROM Scores
+ORDER BY Score DESC;
+```
+
+
+
+**查询连续出现的数字**
+
+```
+SELECT DISTINCT l1.Num AS ConsecutiveNums
+FROM Logs l1 
+LEFT JOIN Logs l2
+ON l1.Id = l2.Id - 1
+LEFT JOIN Logs l3
+ON l1.Id = l3.Id - 2
+WHERE l1.Num = l2.Num AND l1.Num = l3.Num;
+```
+
+
+
+**收入超过经理收入的员工**
+
+每个员工有他经理的Id
+
+自连接
+
+```
+
+```
+
+
+
+**删除重复的电子邮件保留 Id 最小 的那个**
+
+```mysql
+DELETE p1
+FROM Person p1,Person p2
+WHERE (p1.Email = p2.Email) AND (p1.Id > p2.Id);
+```
+
+
+
+**找出每个部门中工资最高的员工**
+
+先GroupBy获得每个部门最高的工资，再根据部门Id和工资关联部门表和员工表
+
+
+
+**部门工资前三高的员工**
+
+会有工资相同的情况，使用count(distinct)
+
+
+
+
+
