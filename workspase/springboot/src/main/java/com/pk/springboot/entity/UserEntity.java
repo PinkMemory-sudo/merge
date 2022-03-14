@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserEntity {
-
+public class UserEntity{
     private int id;
     private String name;
     private int age;
