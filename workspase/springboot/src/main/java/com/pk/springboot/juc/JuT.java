@@ -1,5 +1,7 @@
 package com.pk.springboot.juc;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * wait/notify实现生产者消费知
  */
