@@ -2,6 +2,18 @@
 
 
 
+**Redis存在哪些问题**
+
+
+
+**Redis在项目中是使用**
+
+缓存：提高查询速度，降低数据库压力[Springboot中Redis做缓存](https://www.cnblogs.com/gdpuzxs/p/7222309.html)
+
+
+
+
+
 **你用过redis中的哪些数据类型**
 
 String：计数场景
@@ -59,6 +71,8 @@ RDB 文件发送给从服务
 6、从服务下次在需要同步数据时只需要发送自己的 offset 位置（相当于 mysql binlog 的位置） 即可，只同步新增加的数据，再不需要全量同步
 
 
+
+## 哨兵模式
 
 **redis 的哨兵机制的作用?**
 

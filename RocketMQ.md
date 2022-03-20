@@ -26,6 +26,12 @@
 
 
 
+**MQ怎么选择**
+
+
+
+
+
 **MQ的协议**
 
 JMS：Java消息服务。它便于消息系统中的Java应用程序进行消息交换，并且通过提供标准的产生、发送、接收消息的接口，简化企业应用的开发。ActiveMQ是该协议的典型实现。
@@ -40,13 +46,13 @@ JMS：Java消息服务。它便于消息系统中的Java应用程序进行消息
 
 生产者有三种发送方式：同步、异步和OneWay。同步就是发送消息后进入阻塞，等待确认，异步就是异步的，发送后直接返回，消息发送成功后回掉自定义的接口，Oneway就是只管发送。
 
-生产者采用同步的方式确保发送到了MQ，发送失败时可以指定重试次数，最后还不行就存入DB。
+生产者采用同步的方式确保发送到了MQ，发送失败时可以指定重试次数，最后还不行就存入DB。也可以采用异步回调的方式，将消息存储补偿表中
 
 2. Broker确保持久化
 
 Broker的刷盘策略分为同步和异步。同步是等消息持久化后再返回ACK，异步是指将消息写入PageCache后直接放回。可以采用同步刷盘的策略，确保消息被持久化。另外，MQ应该采用多主多从的方式来保证高可用，采用同步双写(主从都持久化后再返回ACK)。
 
-3. 消费者。 消费完成后，才向服务器返回ack 
+3. 消费者。 消费完成后，才向服务器返回ack (Rocket默认的)
 
 
 
@@ -151,4 +157,31 @@ Id,topic,tag,property,status,exception,create_time,update_time
 
 **事务消息**
 
+保证本地事务和消息的发送都成功
 
+
+
+**怎么做消峰**
+
+
+
+**Broker是怎么保存消息的**
+
+ RocketMQ主要的存储文件包括commitlog文件、consumequeue文件、indexfile文件。 
+
+Broker在收到消息之后，会把消息保存到commitlog的文件当中，而同时在分布式的存储当中，每个broker都会保存一部分topic的数据，同时，每个topic对应的messagequeue下都会生成consumequeue文件用于保存commitlog的物理位置偏移量offset，indexfile中会保存key和offset的对应关系。
+
+由于同一个topic的消息并不是连续的存储在commitlog中，消费者如果直接从commitlog获取消息效率非常低，所以通过consumequeue保存commitlog中消息的偏移量的物理地址，这样消费者在消费的时候先从consumequeue中根据偏移量定位到具体的commitlog物理文件，然后根据一定的规则（offset和文件大小取模）在commitlog中快速定位。
+
+
+**Master和Slave之间是怎么同步数据的呢**
+
+
+
+**RocketMQ速度快的原因**
+
+是因为使用了顺序存储、Page Cache和异步刷盘。
+
+1. 我们在写入commitlog的时候是顺序写入的，这样比随机写入的性能就会提高很多
+2. 写入commitlog的时候并不是直接写入磁盘，而是先写入操作系统的PageCache
+3. 最后由操作系统异步将缓存中的数据刷到磁盘
