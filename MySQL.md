@@ -1408,6 +1408,16 @@ salt或anslble
 
 
 
+**参数的传递**
+
+* 实体类：直接使用实体类中的属性名
+* Map：使用Map的key获取
+* 多个参数：使用#{0},#{1}获取，或者在接口中使用@Param注解，使用注解指定的名字进行获取
+
+
+
+
+
 **模糊查询like语句该怎么写？**
 
 * 在Java代码中添加sql通配符。
@@ -1437,6 +1447,77 @@ PageInfo<T> pageInfo=new PageInfo(list);
 
 
 **动态SQL的标签**
+
+```
+ <if test="username != null">
+           username=#{username}
+ </if>
+```
+
+where，帮我们在前面添加where，用于查询
+
+```
+<where>
+    <if test="username != null">
+    username=#{username}
+    </if>
+
+    <if test="username != null">
+    and sex=#{sex}
+    </if>
+</where>
+```
+
+set，帮我们添加set，用于更新
+
+```
+<set>
+    <if test="username != null and username != ''">
+    u.username = #{username},
+    </if>
+    <if test="sex != null and sex != ''">
+    u.sex = #{sex}
+    </if>
+</set>
+```
+
+ trim标记是一个格式化的标记，可以完成set或者是where标记的功能 ，帮我们添加/去掉前缀或者后缀
+
+```
+<trim prefix="where" prefixOverrides="and | or">
+    <if test="username != null">
+    and username=#{username}
+    </if>
+    <if test="sex != null">
+    and sex=#{sex}
+    </if>
+</trim>
+```
+
+有时候可能某个 sql 语句我们用的特别多，为了增加代码的重用性，简化代码，我们需要将这些代码抽取出来，然后使用时直接调用。 
+
+```
+<!-- 定义 sql 片段 -->
+<sql id="selectUserByUserNameAndSexSQL">
+    <if test="username != null and username != ''">
+        AND username = #{username}
+    </if>
+    <if test="sex != null and sex != ''">
+        AND sex = #{sex}
+    </if>
+</sql>
+
+<!-- 引用 sql 片段，如果refid 指定的不在本文件中，那么需要在前面加上 namespace -->
+<include refid="selectUserByUserNameAndSexSQL"></include>
+```
+
+批量操作foreach
+
+```
+
+```
+
+
 
 
 
