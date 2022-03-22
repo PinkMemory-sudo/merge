@@ -2,6 +2,10 @@ package com.pk.springboot.juc.complateFuture;
 
 import org.apache.catalina.User;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
@@ -36,19 +40,25 @@ public class MainClass {
 //            new Thread(task).start();
 //        }
         AtomicInteger integer = new AtomicInteger(0);
-        AtomicIntegerArray atomicIntegerArray = new AtomicIntegerArray(3);
-        AtomicStampedReference<Integer> reference = new AtomicStampedReference<>(0, 0);
-        reference.compareAndSet()
+        System.out.println(1^1);
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        System.out.println(Instant.now().getEpochSecond());
+        System.out.println(Instant.ofEpochMilli(Instant.now().toEpochMilli()));
 
-        AtomicIntegerArray array = new AtomicIntegerArray(3);
-        int i = array.addAndGet(0, 1);
-        int i1 = array.get(0);
-        array.compareAndSet(0,1,1);
-        Semaphore semaphore = new Semaphore(2);
-        semaphore.acquire();
-        System.out.println("hello");
-        semaphore.release();
-
+        int a=16;
+        System.out.println(Integer.toHexString(a));
+        System.out.println(Integer.toOctalString(a));
+        System.out.println(Integer.toBinaryString(a));
+        System.out.println(Integer.valueOf("F", 16).toString());
+//        AtomicIntegerArray array = new AtomicIntegerArray(3);
+//        int i = array.addAndGet(0, 1);
+//        int i1 = array.get(0);
+//        array.compareAndSet(0,1,1);
+//        Semaphore semaphore = new Semaphore(2);
+//        semaphore.acquire();
+//        System.out.println("hello");
+//        semaphore.release();
+//
 
     }
 }
