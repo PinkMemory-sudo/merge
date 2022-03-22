@@ -159,6 +159,62 @@ Id,topic,tag,property,status,exception,create_time,update_time
 
 保证本地事务和消息的发送都成功
 
+1. 发送Half消息
+2. half消息发送成功
+3. 执行本地事务
+4. commit or rollback
+5. 回查事务状态
+6. 根据事务状态进行commit or rollback
+7. 消息可见/删除
+
+发送half给Broker，Broker存储下来但消费者并不可见(并没有发送到Topic)
+
+消息发送成功后执行本地事务，根据执行结果手动指定状态( COMMIT/ ROLLBACK )给MQ
+
+MQ收到COMMIT后消息变为可见，收到ROLLBACK后删除消息
+
+如果MQ一直没有收到消息，会定时的检查本地事务状态
+
+**实现**
+
+1. 生产者发送事务消息
+
+```
+rocketMQTemplate.sendMessageInTransaction
+```
+
+2. 监听生产者发送的事务消息
+
+```
+@Slf4j
+@Component
+@RocketMQTransactionListener(txProducerGroup = "spring_boot_producer_group")
+public class SyncProducerListener implements RocketMQLocalTransactionListener {
+    private AtomicInteger trnner = new AtomicInteger(0);
+    private ConcurrentHashMap<String, Object> localTrans = new ConcurrentHashMap<>();
+    @Autowired
+    private LocalService localService;
+    @Override
+    public RocketMQLocalTransactionState executeLocalTransaction(Message message, Object o) {
+        try {
+            localService.executeLocalService(message.getPayload().toString());
+            log.info("【本地业务执行完毕】 msg:{}, Object:{}", message, o);
+            localTrans.put(message.getHeaders().getId()+"", message.getPayload());
+            return RocketMQLocalTransactionState.COMMIT;
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("【执行本地业务异常】 exception message:{}", e.getMessage());
+            return RocketMQLocalTransactionState.ROLLBACK;
+        }
+    }
+    @Override
+    public RocketMQLocalTransactionState checkLocalTransaction(Message message) {
+        log.info("【执行检查任务】");
+        return RocketMQLocalTransactionState.UNKNOWN;
+    }
+}
+```
+
 
 
 **怎么做消峰**
@@ -173,7 +229,6 @@ Broker在收到消息之后，会把消息保存到commitlog的文件当中，�
 
 由于同一个topic的消息并不是连续的存储在commitlog中，消费者如果直接从commitlog获取消息效率非常低，所以通过consumequeue保存commitlog中消息的偏移量的物理地址，这样消费者在消费的时候先从consumequeue中根据偏移量定位到具体的commitlog物理文件，然后根据一定的规则（offset和文件大小取模）在commitlog中快速定位。
 
-
 **Master和Slave之间是怎么同步数据的呢**
 
 
@@ -185,3 +240,192 @@ Broker在收到消息之后，会把消息保存到commitlog的文件当中，�
 1. 我们在写入commitlog的时候是顺序写入的，这样比随机写入的性能就会提高很多
 2. 写入commitlog的时候并不是直接写入磁盘，而是先写入操作系统的PageCache
 3. 最后由操作系统异步将缓存中的数据刷到磁盘
+
+
+
+# 生产者
+
+
+
+**发送消息**
+
+打印发送结果和key
+
+
+
+**消息发送失败的处理**
+
+- 至多重试2次。
+- 如果同步模式发送失败，则轮转到下一个Broker，如果异步模式发送失败，则只会在当前Broker进行重试。这个方法的总耗时时间不超过sendMsgTimeout设置的值，默认10s。
+- 如果本身向broker发送消息产生超时异常，就不会再重试。
+
+ 调用send同步方法发送失败时，则尝试将消息存储到db，然后由后台线程定时重试，确保消息一定到达Broker。 
+
+
+
+**Topic，tag，key**
+
+
+
+# 消费者
+
+
+
+**消息幂等**
+
+可以借助关系型数据库，使用消息的唯一键(可以是msgId，或者是消息内容如订单号)
+
+
+
+**接收消息**
+
+
+
+**消息过滤**
+
+
+
+**SpringBoot与RocketMQ**
+
+1. 引入starter
+
+*配置文件*
+
+```
+rocketmq:
+  name-server: 192.168.1.224:9876 # 访问地址,分号隔开
+  producer:
+    group: Pro_Group # 必须指定group
+    send-message-timeout: 3000 # 消息发送超时时长，默认3s
+    retry-times-when-send-failed: 3 # 同步发送消息失败重试次数，默认2
+    retry-times-when-send-async-failed: 3 # 异步发送消息失败重试次数，默认2
+```
+
+
+
+生产者发送消息，传入Topic、Tag、Message和回调函数
+
+```java
+@Slf4j
+@Component
+public class MQProducerService {
+
+	@Value("${rocketmq.producer.send-message-timeout}")
+    private Integer messageTimeOut;
+
+	// 建议正常规模项目统一用一个TOPIC
+    private static final String topic = "RLT_TEST_TOPIC";
+    
+	// 直接注入使用，用于发送消息到broker服务器
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+
+	/**
+     * 普通发送（这里的参数对象User可以随意定义，可以发送个对象，也可以是字符串等）
+     */
+    public void send(User user) {
+        rocketMQTemplate.convertAndSend(topic + ":tag1", user);
+//        rocketMQTemplate.send(topic + ":tag1", MessageBuilder.withPayload(user).build()); // 等价于上面一行
+    }
+
+    /**
+     * 发送同步消息（阻塞当前线程，等待broker响应发送结果，这样不太容易丢失消息）
+     * （msgBody也可以是对象，sendResult为返回的发送结果）
+     */
+    public SendResult sendMsg(String msgBody) {
+        SendResult sendResult = rocketMQTemplate.syncSend(topic, MessageBuilder.withPayload(msgBody).build());
+        log.info("【sendMsg】sendResult={}", JSON.toJSONString(sendResult));
+        return sendResult;
+    }
+
+	/**
+     * 发送异步消息（通过线程池执行发送到broker的消息任务，执行完后回调：在SendCallback中可处理相关成功失败时的逻辑）
+     * （适合对响应时间敏感的业务场景）
+     */
+    public void sendAsyncMsg(String msgBody) {
+        rocketMQTemplate.asyncSend(topic, MessageBuilder.withPayload(msgBody).build(), new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                // 处理消息发送成功逻辑
+            }
+            @Override
+            public void onException(Throwable throwable) {
+                // 处理消息发送异常逻辑
+            }
+        });
+    }
+    
+	/**
+     * 发送延时消息（上面的发送同步消息，delayLevel的值就为0，因为不延时）
+     * 在start版本中 延时消息一共分为18个等级分别为：1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h
+     */
+    public void sendDelayMsg(String msgBody, int delayLevel) {
+        rocketMQTemplate.syncSend(topic, MessageBuilder.withPayload(msgBody).build(), messageTimeOut, delayLevel);
+    }
+
+    /**
+     * 发送单向消息（只负责发送消息，不等待应答，不关心发送结果，如日志）
+     */
+    public void sendOneWayMsg(String msgBody) {
+        rocketMQTemplate.sendOneWay(topic, MessageBuilder.withPayload(msgBody).build());
+    }
+    
+	/**
+     * 发送带tag的消息，直接在topic后面加上":tag"
+     */
+    public SendResult sendTagMsg(String msgBody) {
+        return rocketMQTemplate.syncSend(topic + ":tag2", MessageBuilder.withPayload(msgBody).build());
+    }
+    
+}
+```
+
+
+
+消费者
+
+实现RocketMQListener接口，添加@ RocketMQMessageListener 注解指定监听的Topic，tag和消费者组
+
+```
+@Slf4j
+@Component
+public class MQConsumerService {
+
+    // topic需要和生产者的topic一致，consumerGroup属性是必须指定的，内容可以随意
+    // selectorExpression的意思指的就是tag，默认为“*”，不设置的话会监听所有消息
+    @Service
+    @RocketMQMessageListener(topic = "RLT_TEST_TOPIC", selectorExpression = "tag1", consumerGroup = "Con_Group_One")
+    public class ConsumerSend implements RocketMQListener<User> {
+        // 监听到消息就会执行此方法
+        @Override
+        public void onMessage(User user) {
+            log.info("监听到消息：user={}", JSON.toJSONString(user));
+        }
+    }
+
+    // 注意：这个ConsumerSend2和上面ConsumerSend在没有添加tag做区分时，不能共存，
+    // 不然生产者发送一条消息，这两个都会去消费，如果类型不同会有一个报错，所以实际运用中最好加上tag，写这只是让你看知道就行
+    @Service
+    @RocketMQMessageListener(topic = "RLT_TEST_TOPIC", consumerGroup = "Con_Group_Two")
+    public class ConsumerSend2 implements RocketMQListener<String> {
+        @Override
+        public void onMessage(String str) {
+            log.info("监听到消息：str={}", str);
+        }
+    }
+
+	// MessageExt：是一个消息接收通配符，不管发送的是String还是对象，都可接收，当然也可以像上面明确指定类型（我建议还是指定类型较方便）
+    @Service
+    @RocketMQMessageListener(topic = "RLT_TEST_TOPIC", selectorExpression = "tag2", consumerGroup = "Con_Group_Three")
+    public class Consumer implements RocketMQListener<MessageExt> {
+        @Override
+        public void onMessage(MessageExt messageExt) {
+            byte[] body = messageExt.getBody();
+            String msg = new String(body);
+            log.info("监听到消息：msg={}", msg);
+        }
+    }
+
+}
+```
+
