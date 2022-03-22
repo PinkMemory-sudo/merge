@@ -374,6 +374,22 @@ isInterrupted
 
 
 
+**捕获线程的异常**
+
+
+
+**线程异常的或掉接口**
+
+
+
+**注入钩子函数**
+
+
+
+
+
+
+
 ### Volatile
 
 
@@ -465,6 +481,18 @@ JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋�
 
 
 
+**tryLock解决死锁问题**
+
+
+
+**公平锁与非公平锁**
+
+
+
+**读写锁**
+
+
+
 ### 线程池
 
 
@@ -545,27 +573,37 @@ Java中专门针对版本号的东西
 
 ### AQS
 
-AQS 的全称为( AbstractQueuedSynchronizer ）AQS 是一个用来构建锁和同步器的框架。ReentrantLock ， Semaphore ，其他的诸如ReentrantReadWriteLock ， SynchronousQueue ， FutureTask 等等皆是基于 AQS 的。
 
 
+[参考](https://www.cnblogs.com/waterystone/p/4920797.html)
 
-AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线 程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占用，那么就需要一套线程阻塞 等待以及被唤醒时锁分配的机制，这个机制 AQS 是用 CLH 队列锁实现的，即将暂时获取不到锁 的线程加入到队列中。
+**AQS是什么**
 
-AQS 使用 CAS 对该同步状态进行原子操作实现对其值的修改。状态信息通过 protected 类型的 getState，setState，compareAndSetState 进行操作。
+是一个同步器框架， 定义了一套多线程访问共享资源的同步器框架。它维护了一个volatile int state（代表共享资源）和一个FIFO线程等待队列（多线程争用资源被阻塞时会进入此队列）自定义同步器在实现时只需要实现共享资源state的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS已经在顶层实现好了。
 
-以 ReentrantLock 为例，state 初始化为 0，表示未锁定状态。A 线程 lock()时，会调用 tryAcquire()独占该锁并将 state+1。此后，其他线程再 tryAcquire()时就会失败，直到 A 线程 unlock()到 state=0(即释放锁)为止，其它线程才有机会获取该锁。当然，释放锁之前，A 线程 自己是可以重复获取此锁的(state 会累加)，这就是可重入的概念。但要注意，获取多少次就 要释放多么次，这样才能保证 state 是能回到零态的。
-
-再以 CountDownLatch 以例，任务分为 N 个子线程去执行，state 也初始化为 N(注意 N 要与线 程个数一致)。这 N 个子线程是并行执行的，每个子线程执行完后 countDown() 一次，state 会 CAS(Compare and Swap)减 1。等到所有子线程都执行完后(即 state=0)，会 unpark()主调用线 程，然后主调用线程就会从 await() 函数返回，继续后余动作。
-
-自定义同步器在实现时只需要实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护(如获取资源失败入队/唤醒出队 等)，AQS 已经在顶层实现好了。
-
-
+AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线 程，并且将共享资源设置为锁定状态。如果被请求的共享资源被占用，那么就需要一套线程阻塞等待以及被唤醒时锁分配的机制，这个机制 AQS 是用 CLH 队列锁实现的，即将暂时获取不到锁 的线程加入到队列中。
 
 AQS 定义两种资源共享方式
 Exclusive(独占):只有一个线程能执行，如 ReentrantLock 。又可分为公平锁和非公平锁:
 公平锁:按照线程在队列中的排队顺序，先到者先拿到锁
 非公平锁:当线程要获取锁时，无视队列顺序直接去抢锁，谁抢到就是谁的 Share(共享):多个线程可同时执行，如
  Semaphore 、 CountDownLatch 、 CyclicBarrier 、 ReadWriteLock 我们 都会在后面讲到。
+
+
+
+**自定义同步器**
+
+- isHeldExclusively()：该线程是否正在独占资源。只有用到condition才需要去实现它。
+- tryAcquire(int)：独占方式。尝试获取资源，成功则返回true，失败则返回false。
+- tryRelease(int)：独占方式。尝试释放资源，成功则返回true，失败则返回false。
+- tryAcquireShared(int)：共享方式。尝试获取资源。负数表示失败；0表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。
+- tryReleaseShared(int)：共享方式。尝试释放资源，如果释放后允许唤醒后续等待结点返回true，否则返回false。
+
+
+
+以 **ReentrantLock** 为例，state 初始化为 0，表示未锁定状态。A 线程 lock()时，会调用 tryAcquire()独占该锁并将 state+1。此后，其他线程再 tryAcquire()时就会失败，直到 A 线程 unlock()到 state=0(即释放锁)为止，其它线程才有机会获取该锁。当然，释放锁之前，A 线程 自己是可以重复获取此锁的(state 会累加)，这就是可重入的概念。但要注意，获取多少次就 要释放多么次，这样才能保证 state 是能回到零态的。
+
+再以 **CountDownLatch** 以例，任务分为 N 个子线程去执行，state 也初始化为 N(注意 N 要与线 程个数一致)。这 N 个子线程是并行执行的，每个子线程执行完后 countDown() 一次，state 会 CAS(Compare and Swap)减 1。等到所有子线程都执行完后(即 state=0)，会 unpark()主调用线 程，然后主调用线程就会从 await() 函数返回，继续后余动作。
 
 
 
@@ -629,7 +667,7 @@ CyclicBarrier cyclicBarrier = new CyclicBarrier(4);
 
 
 
-**用过 CountDownLatch 么?什么场景下用的?**
+**用过 CountDownLatch么?什么场景下用的?**
 
 实际可以用Java8的CompletableFuture
 
@@ -639,17 +677,65 @@ CyclicBarrier cyclicBarrier = new CyclicBarrier(4);
 
 ### 原子操作类
 
-
+使用原子操作类，减少对Synxhronized和Lock的使用
 
 基本类型：AtomicInteger，AtomicLong，AtomicBoolean
 
 数组类型：AtomicIntegerArray，AtomicLongArray，AtomicReferenceArray
 
+对象的属性修改类型：AtomicIntegerFieldUpdater，AtomicLongFieldUpdater，AtomicReferenceFieldUpdater
+
 引用类型：AtomicReference，AtomicStampedReference，AtomicMarkableReference
 
 AtomicStampedReference可以解决ABA问题
 
-对象的属性修改类型：AtomicIntegerFieldUpdater，AtomicLongFieldUpdater，AtomicReferenceFieldUpdater
+
+
+
+
+**使用**
+
+*AtomicInteger*，int的原子操作类，常用的方法有自增自减，compareAndSet(expect,update)当前值等于期待值时才进行更新。get获得int值，xxxValue可以获得long，double等值。
+
+```
+AtomicInteger num = new AtomicInteger(0);
+num.getAndDecrement();
+int i = num.intValue();
+```
+
+*AtomicIntegerArray* 通过下标对数组中的元素进行原子性操作(自增自减等)，compareAndSet(int i, int expect, int update)
+
+```java
+AtomicIntegerArray array = new AtomicIntegerArray(3);
+int i = array.addAndGet(0, 1);
+int i1 = array.get(0);
+array.compareAndSet(0,1,1);
+```
+
+*AtomicIntegerFieldUpdater*用来更新对象中的实例变量,让普通变量也可以进行原子性操作
+
+* 更新的变量必须使用volatile修饰
+
+```
+AtomicIntegerFieldUpdater<User> updater = AtomicIntegerFieldUpdater.newUpDater(User.class, "age");
+updater.getAndIncrement(user);
+```
+
+*AtomicReference*， 对普通对象的封装，使普通对象也可以进行原子操作。
+
+ ```java
+AtomicReference<User> reference = new AtomicReference<>();
+reference.compareAndSet()
+ ```
+
+ AtomicStampedReference内部维护了一个时间戳(实际使任意的整形数字)，可以用来解决ABA问题。 当AtomicStampedReference对应的数值被修改时，除了更新数据本身外，还必须要更新时间戳， AtomicStampedReference设置对象值时，对象值以及时间戳都必须满足期望值，写入才会成功 。
+
+```java
+compareAndSet(V   expectedReference,
+              V   newReference,
+              int expectedStamp,
+              int newStamp);
+```
 
 
 
@@ -673,27 +759,55 @@ AtomicStampedReference可以解决ABA问题
 
 **ThreadLocal是什么**
 
-ThreadLocal变量是线程的本地变量，每个线程都可以有自己的副本，从而避免线程安全问题。
+ThreadLocal变量是线程的本地变量，每个线程都可以有自己的副本，每个线程访问到的都是自己的变量，从而避免线程安全问题。
 
 
 
-**ThreadLocal底层原理**
+**ThreadLocal实现原理**
 
  Thread类有一个类型为ThreadLocal.ThreadLocalMap， 即每个线程都有一个属于自己的ThreadLocalMap。
 
 
 
+**Thread、ThreadLocal与ThreadLocalMap之间的关系**
+
+Thread 中持有一个ThreadLocalMap，Entry 的key是ThreadLocal 类型的，value 是Object 类型。也就是一个ThreadLocalMap 可以持有多个ThreadLocal。
+
+ThreadLocalMap是Threadlocal的内部类，我们需要通过ThreadLocal来操作变量的值
+
+在第一次调用ThreadLocal的set()/set() 方法的时候开始绑定(给线程创建ThreadLocalMap)， 
+
+之后调用get/set方法时，先取到Thread中ThreadLocalMap，key为当前ThreadLocal的This，然后对Map进行操作
+
+remove()，清空Thread中的ThreadLocalMap
+
+
+
+**使用**
+
+```Java
+ThreadLocal<String> localVar = new ThreadLocal<>();
+localVar.set("hello");
+String str = localVal.get();
+```
+
+
+
 **内存泄漏问题**
 
- `ThreadLocalMap` 是使用 `ThreadLocal` 的弱引用作为 `Key`的，弱引用的对象在 GC 时会被回收。 这时如果线程还在执行，就会有一条当前线程引用threadLocalMap引用entry引用value，这些值不能被访问页清除不了。
+原因：
 
- 其实，`ThreadLocalMap`的设计中已经考虑到这种情况，也加上了一些防护措施：在`ThreadLocal`的`get()`,`set()`,`remove()`的时候都会清除线程`ThreadLocalMap`里所有`key`为`null`的`value` 
+`ThreadLocalMap` 是使用 `ThreadLocal` 的弱引用作为 `Key`的，弱引用的对象在 GC 时会被回收。 这时如果线程还在执行，就会有一条当前线程引用threadLocalMap引用entry引用value，这些值不能被访问页清除不了。
+
+ 解决方案：
+
+其实，`ThreadLocalMap`的设计中已经考虑到这种情况，也加上了一些防护措施：在`ThreadLocal`的`get()`,`set()`,`remove()`的时候都会清除线程`ThreadLocalMap`里所有`key`为`null`的`value` 
 
 
 
 **ThreadLocal的变量，父子线程之间是可以共享的吗**
 
-不可以
+ 同一个ThreadLocal变量在父线程中被设置值后，在子线程中是获取不到的，因为key值不同
 
 
 
@@ -971,6 +1085,12 @@ jmap，jstack 的使用等等
 
 
 # 算法
+
+
+
+**Java的与运算**
+
+
 
 
 
