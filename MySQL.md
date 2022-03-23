@@ -138,15 +138,17 @@ drop是删除整个表，包括表结构
 
 
 
-**一条SQL语句在MySQL中如何执行的**
-
 [一条SQL语句在MySQL中如何执行的](https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&mid=2247485097&idx=1&sn=84c89da477b1338bdf3e9fcd65514ac1&chksm=cea24962f9d5c074d8d3ff1ab04ee8f0d6486e3d015cfd783503685986485c11738ccb542ba7&token=79317275&lang=zh_CN%23rd)
 
-简单来说 MySQL 主要分为 Server 层和存储引擎层
+ **连接器：** 身份认证和权限相关(登录 MySQL 的时候)。
 
-**Server 层**：主要包括连接器、查询缓存、分析器、优化器、执行器等
+**查询缓存:** 执行查询语句的时候，会先查询缓存（MySQL 8.0 版本后移除，因为这个功能不太实用）。
 
-**存储引擎**： 主要负责数据的存储和读取
+**分析器:** 没有命中缓存的话，SQL 语句就会经过分析器，分析器说白了就是要先看你的 SQL 语句要干嘛，再检查你的 SQL 语句语法是否正确。
+
+**优化器：** 按照 MySQL 认为最优的方案去执行。
+
+**执行器:** 执行语句，然后从存储引擎返回数据。 
 
 
 
@@ -926,19 +928,25 @@ redolog是存储引擎产生的，binlog是数据库产生的，如果一个事�
 
 
 
-RecordLocks
+**RecordLocks**
+
+单行记录上加锁
 
 
 
-GapLocks
+**GapLocks**
+
+间隙锁，不包括记录本身
 
 
 
-Next-keyLocks
+**Next-keyLocks**
+
+record+gap 锁定⼀个范围，包含记录本身。
 
 
 
-插入意向锁
+innodb对于⾏的查询使⽤next-key lock 2. Next-locking keying为了解决Phantom Problem幻读问题 3. 当查询的索引含有唯⼀属性时，将next-key lock降级为record key 4. Gap锁设计的⽬的是为了阻⽌多个事务将记录插⼊到同⼀范围内，⽽这会导致幻读问题的产 ⽣ 5. 有两种⽅式显式关闭gap锁：（除了外键约束和唯⼀性检查外，其余情况仅使⽤record lock） A. 将事务隔离级别设置为RC B. 将参数innodb_locks_unsafe_for_binlog设置为1 
 
 
 
@@ -1107,6 +1115,11 @@ UPDATE student SET ... # 排他锁
 
 
 
+**大表的优化**
+
+1. 限定表的查找范围
+2. 读写分离
+
 
 
 小表驱动大表？
@@ -1192,8 +1205,6 @@ CPU飙升应该怎么处理
 
 
 
-
-
 **超大分页，怎么处理**
 
 如果ID是自增且连续的，可以在where后添加id的条件
@@ -1201,8 +1212,6 @@ CPU飙升应该怎么处理
 如果不是连续的，就需要使用覆盖索引
 
 
-
-**MySQL高性能优化规范建议**
 
 [MySQL高性能优化规范建议](https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&mid=2247485117&idx=1&sn=92361755b7c3de488b415ec4c5f46d73&chksm=cea24976f9d5c060babe50c3747616cce63df5d50947903a262704988143c2eeb4069ae45420&token=79317275&lang=zh_CN%23rd)
 
@@ -1416,8 +1425,6 @@ salt或anslble
 
 
 
-
-
 **模糊查询like语句该怎么写？**
 
 * 在Java代码中添加sql通配符。
@@ -1432,6 +1439,19 @@ salt或anslble
 
 
 
+**插入时获得主键Id**
+
+
+
+**Mybatis 是如何将 sql 执⾏结果封装为⽬标对象并返回的？都 有哪些映射形式？** 
+
+1. 属性和查找的列名相同时自动映射
+2. 通过resultMap指定列名和属性名的关系
+
+有了列名与属性名的映射关系后，Mybatis 通过反射创建对象，同时使⽤反射给对象的属性逐⼀ 赋值并返回，那些找不到映射关系的属性，是⽆法完成赋值的。 
+
+
+
 **MyBatis如何进行分页**
 
 ```
@@ -1443,6 +1463,8 @@ PageInfo<T> pageInfo=new PageInfo(list);
 
 
 **插件的原理**
+
+Mybatis 仅可以编写针对 ParameterHandler 、 ResultSetHandler 、 StatementHandler 、 Executor 这 4 种接⼝的插件， Mybatis 使⽤ JDK 的动态代理，为需要拦截的接⼝⽣成代理对象以实现接⼝⽅法拦截功能，每当 执⾏这 4 种接⼝对象的⽅法时，就会进⼊拦截⽅法，具体就是 InvocationHandler 的 invoke() ⽅ 法，当然，只会拦截那些你指定需要拦截的⽅法。 实现 Mybatis 的 Interceptor 接⼝并复写 intercept() ⽅法，然后在给插件编写注解，指定要拦截哪 ⼀个接⼝的哪些⽅法即可，记住，别忘了在配置⽂件中配置你编写的插件。 
 
 
 

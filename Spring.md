@@ -2,7 +2,35 @@
 
 
 
+**Springboot与Spring的关系**
+
+Springboot简化了Spring的配置
+
+Springboot内嵌Tomcat
+
+
+
+**Spring Boot 的主要优点** 
+
+
+
+**Spring Boot ⽀持哪些内嵌 Servlet 容器** 
+
+
+
+**如何在 Spring Boot 应⽤程序中使⽤ Jetty ⽽不是 Tomcat** 
+
+
+
 ## Bean
+
+
+
+**Bean的注入方式@Autowire或@Resource的区别**
+
+ @Autowired是Spring的注解，注解是按类型装配依赖对象，默认情况下它要求依赖对象必须存在，如果允许null值，可以设置它required属性为false 
+
+@Resource是Java的注解，默认按照名字进行注入。有两个属性name和type，表示使用名字或类型进行注入
 
 
 
@@ -69,6 +97,12 @@ BeanFactory创建Bean过程
 
 
 
+**@Component 和 @Bean 的区别是什么**？ 
+
+1. 作用范围不同
+
+
+
 ## IOC
 
 
@@ -91,10 +125,22 @@ IoC 容器是 Spring 用来实现 IoC 的载体， IoC 容器实际上就是个M
 
 
 
+**什么是面向切面编程**
+
+
+
+
+
 **AOP 有哪些实现方式**
 
 - 预编译：AspectJ
 - 运行期动态代理（JDK动态代理、CGLib动态代理）：SpringAOP
+
+
+
+**Spring AOP 和 AspectJ AOP 有什么区别？** 
+
+Spring AOP 属于运⾏时增强，⽽ AspectJ 是编译时增强。 Spring AOP 基于代理(Proxying)， ⽽ AspectJ 基于字节码操作(Bytecode Manipulation)。 
 
 
 
@@ -103,6 +149,10 @@ IoC 容器是 Spring 用来实现 IoC 的载体， IoC 容器实际上就是个M
 
 
 **项目中SpringAOP的使用**
+
+
+
+**有哪几种增强**
 
 
 
@@ -129,6 +179,8 @@ Spring事务配置，隔离级别
 **Spring的事务传播机制**
 
 Service接口方法可能会在内部调用其它的Service接口方法以共同完成一个完整的业务操作，因此就会产生服务接口方法嵌套调用的情况， Spring通过事务传播行为控制当前的事务如何传播到被嵌套调用的目标服务接口方法中。即当前的事务(调用的方法)遇到了另一个事务(方法调用了另一个方法)，另一个事务怎么办。
+
+分为支持当前事务和不支持当前事务
 
 | 传播行为                  | 描述                                                         |
 | ------------------------- | ------------------------------------------------------------ |
@@ -194,6 +246,10 @@ Service接口方法可能会在内部调用其它的Service接口方法以共同
 
 
 
+**Spring Boot 的⾃动配置是如何实现的?** 
+
+
+
 **bootstrap.yml与application.yml的区别**
 
 bootstrap.yml用来加载远程配置文件，优先于application，一般在SpringCloudConfig或者Nacos中用到。
@@ -209,7 +265,32 @@ bootstrap主要用于从额外的资源来加载配置信息，
 
 
 
+**Spring Boot 常⽤的读取配置⽂件的⽅法有哪些** 
+
+
+
 **配置文件的优先级**
+
+
+
+**Spring Boot 如何做请求参数校验** 
+
+
+
+**如何使⽤ Spring Boot 实现全局异常处理？**
+
+
+
+**如何在服务端使⽤ Cookie 呢？**  
+
+* @CookieValue(value="key")
+* 从HttpRequest中读取
+
+
+
+**如何读取Header**
+
+@RequestHeader("key")
 
 
 
@@ -217,11 +298,12 @@ bootstrap主要用于从额外的资源来加载配置信息，
 
 
 
-**Spring 框架中都用到了哪些计模式**
+**Spring 框架中都用到了哪些设计模式**
 
-
-
-**@Autowire 与@Resource 的区别**
+* 工厂模式
+* 代理模式
+* 单例模式
+* 
 
 
 
@@ -244,6 +326,14 @@ Oauth2中后台token是存在服务JVM内存中，如果服务崩了的话，tok
 
 
 **拦截器与过滤器的区别**
+
+
+
+**怎么进行限流**
+
+
+
+**SpringMVC不同⽤户登录的信息怎么保证线程安全的** 
 
 
 
