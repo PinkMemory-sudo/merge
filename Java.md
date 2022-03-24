@@ -8,13 +8,15 @@
 
 **String为什么要使用final**
 
-String不叫常用，被final修饰的类不能被继承
+String比较常用，被final修饰的类不能被继承保证String类的不可改变，使得JVM可以实现字符串常量池，节约空间和提高性能，不可变也保证了多线程下的安全性。
 
 
 
 **String str="hello world"和String str=new String("hello world")的区别**
 
-使用""创建的字符串存储在堆中的字符串常量池中，相同的内容只会存储一份。new String()，通过new创建出来的字符串存储是在堆内存中，不会去检查是否存在。
+使用""创建的字符串存储在堆中的字符串常量池中，会先检查是否存在，相同的内容只会存储一份。
+
+new String()，通过new创建出来的字符串存储是在堆内存中，然后检查常量池中存不存在，堆中保存着常量池中的地址。
 
 
 
@@ -39,7 +41,29 @@ false 因为c是间接相加的，jvm不会对引用变量进行优化
 
 
 
+# 反射
+
+
+
+**什么是反射**
+
+对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意一个方法和属性；这种动态获取的信息以及动态调用对象的方法的功能称为java语言的反射机制。 
+
+
+
+**Spring哪些地方用到了反射**
+
+* 对象的实例化是通过反射实现的 
+
+* 注解
+
+
+
 **获得Class对象的方法**
+
+* 实例.getClass()
+* Class.forName("")
+* 类名.class
 
 
 
@@ -73,11 +97,26 @@ AIP： NIO2，异步非阻塞的 IO 模型，基于事件和回调机制，应�
 
 **泛型擦除**
 
+在运行时，Java不会保留范型。 Java的范型只存在于源码里，编译的时候给你静态地检查一下范型类型是否正确，而到了运行时就不检查了 。
+
+```java
+LinkedList<Cat> cats = new LinkedList<Cat>();
+# 编译后变成了
+LinkedList cats = new LinkedList();
+cats.add(new Dog());
+```
+
 
 
 **final、finalize 和 finally 的不同之处** 
 
 finalize 是 Object 类的一个方法，在垃圾收集器执行的时候会调用被回收对象的此方法， 可以覆盖此方法提供垃圾收集时的其他资源回收，例如关闭文件等。 
+
+
+
+**finally与return语句**
+
+finally在return之前执行，finally中对返回结果的操作不会影响返回值
 
 
 
@@ -103,7 +142,7 @@ finalize 是 Object 类的一个方法，在垃圾收集器执行的时候会调
 **元注解**
 
 * @Target：注解的范围，ElementType枚举常用的TYPE(类,接口,)、FIELD，METHOD
-* @ Retention：声明周期， SOURCE源文件中，CLASS，RUNTIME 
+* @ Retention：声明周期， SOURCE源文件中(编译后删除)，CLASS(默认的，保留在字节码中，加载进内存时删除)，RUNTIME( jvm加载class文件之后，仍然存在 )。一般如果需要在运行时去动态获取注解信息，那只能用 RUNTIME 注解；如果要在编译时进行一些预处理操作，比如生成一些辅助代码（如 ButterKnife），就用 CLASS注解；如果只是做一些检查性的操作，
 * @Documented：能不能生成Javadoc
 *  @Inherited： 是否可以被继承
 
@@ -119,9 +158,32 @@ finalize 是 Object 类的一个方法，在垃圾收集器执行的时候会调
 
 **获得字段的注解**
 
+```
+for (Field field : userClass.getDeclaredFields()) {
+    if (field.isAnnotationPresent(Autowired.class)) {
+    Autowired annotation = field.getAnnotation(Autowired.class);
+    boolean required = annotation.required();
+    field.get(哪个对象)
+    }
+}
+```
 
 
-**静态内部类和内部类的区别**
+
+**静态内部类和(成员)内部类的区别**
+
+* 成员内部类可以无条件的访问外部类的属性和方法(包括静态的和私有的，同名时需要使用外部类.this.变量)
+* 成员内部类是依赖外部类存在的，也就是说创建内部类必须存在一个外部类`外部类对象.new 内部类()`,而内部类被private修饰时，只能被外部类使用。
+* 静态内部类不能访问外部类非静态变量和方法
+* 静态内部类不依赖于外部类，与类的静态成员相似
+
+
+
+**内部类和外部类的访问方式**
+
+内部类可以随意访问外部类，外部类访问内部类需要用内部类的引用进行访问
+
+静态内部类只能访问外部类静态的方法和变量
 
 
 
@@ -130,12 +192,6 @@ finalize 是 Object 类的一个方法，在垃圾收集器执行的时候会调
 * 空指针
 * ByZero
 * 下标越界
-
-
-
-**finally与return语句**
-
-finally在return之前执行，finally中对返回结果的操作不会影响返回值
 
 
 
@@ -150,6 +206,12 @@ finally在return之前执行，finally中对返回结果的操作不会影响返
 
 
 **重写的限制**
+
+* 访问修饰符，不能比父类小
+* 参数列表相同
+* 返回值类型相同
+* 异常，不能抛出比父类大的异常
+* 
 
 
 
@@ -201,6 +263,14 @@ collections有多个sort方法，可以传入comparator或者不传入，按找�
 
 
 
+**集合和数组之间的转换**
+
+集合的toArray方法
+
+Arrays.asList()方法
+
+
+
 ### List
 
 
@@ -231,7 +301,7 @@ ArrayList需要连续的空间，不够时需要扩容，重新分配空间，Li
 
 **set怎么保证不重复的**
 
-会先计算对象的 hashcode 值来判断对象加入的位置，同 时也会与其他加入的对象的 hashcode 值作比􏰀，如果没有相符的 hashcode ， HashSet 会假设对象没有重复出现。但是如果发现有相同 hashcode 值的对象，这时会调用 equals() 方法来检查hashcode 相等的对象是否真的相同。如果两者相同， HashSet 就不会让加入操作成功。
+会先计算对象的 hashcode 值来判断对象加入的位置，同 时也会与其他加入的对象的 hashcode 值作比，如果没有相符的 hashcode ， HashSet 会假设对象没有重复出现。但是如果发现有相同 hashcode 值的对象，这时会调用 equals() 方法来检查hashcode 相等的对象是否真的相同。如果两者相同， HashSet 就不会让加入操作成功。
 
 
 
@@ -261,7 +331,11 @@ equals相同时，hashCode也一定要相同。所以重写了equals方法，则
 
 **Hashtable 和 Hashmap 的区别**
 
-线程安全，key不能为null
+线程安全，
+
+key不能为null
+
+扩容机制
 
 
 
@@ -282,6 +356,8 @@ equals相同时，hashCode也一定要相同。所以重写了equals方法，则
 当大是2的幂次方时，求余操作求可以通过(lengh-1)$hash来操作，这样每次根据Hash计算位置时效率就高得多了
 
 
+
+### ConcurrentHashMap
 
 **ConcurrentHashMap为什么是线程安全的**
 
@@ -335,7 +411,7 @@ JDK1.8
 
 **什么是上下文切换**
 
-多线程通常是线程数大于CPU数，一个CPU来回切换来执行多个线程。当一个线程执行完CPU时间段切换到另一个线程前，会先将自己的当前状态先保存起来，等再次切换回这个任务时在把状态加载出来接着执行。
+多线程之间是交替执行的，通常是线程数大于CPU数，一个CPU来回切换来执行多个线程。当一个线程执行完CPU时间段切换到另一个线程前，会先将自己的当前状态先保存起来，等再次切换回这个任务时在把状态加载出来接着执行。
 
 
 
@@ -429,17 +505,53 @@ isInterrupted
 
 **捕获线程的异常**
 
+线程中的异常是不能抛出到调用该线程的外部方法中捕获的。
+
+ JDK5之后有了一个Thread.UncaughtExceptionHandler 新接口，它允许我们在每一个Thread对象上添加一个异常处理器。  会在线程因未捕获的异常而面临死亡时被调用。 
+
+```Java
+public class MyUnchecckedExceptionhandler implements UncaughtExceptionHandler {
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+        System.out.println("捕获异常处理方法：" + e);
+    }
+}
+```
+
+可以在创建线程的时候设置
+
+```Java
+Thread t = new Thread(new ExceptionThread());
+t.setUncaughtExceptionHandler(new MyUnchecckedExceptionhandler());
+t.start();
+```
+
+线程池的话还可以在TreadFactory中设置 
+
+```java
+ExecutorService exec = Executors.newCachedThreadPool(new ThreadFactory(){
+                    @Override
+            public Thread newThread(Runnable r) {
+                Thread thread = newThread(r);
+                thread.setUncaughtExceptionHandler(new MyUnchecckedExceptionhandler());
+                return thread;
+            }
+});
+exec.execute(new ExceptionThread());
+```
+
+设置默认的处理器
+
+```
+// 设置默认的线程异常捕获处理器
+Thread.setDefaultUncaughtExceptionHandler(new MyUnchecckedExceptionhandler());
+```
 
 
-**线程异常的或掉接口**
 
+**线程异常的回调接口**
 
-
-**注入钩子函数**
-
-
-
-
+UncaughtExceptionHandler
 
 
 
@@ -524,6 +636,15 @@ JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋�
 
 
 
+**Java有哪些锁机制**
+
+* 乐观锁悲观锁
+* 独享和共享
+* 可重入和不可重入
+* 公平和非公平
+
+
+
 **ReentrantLock  与Synchronized的区别**
 
 * 实现原理不同，
@@ -540,9 +661,17 @@ JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋�
 
 **公平锁与非公平锁**
 
+公平锁是指多个线程按照申请锁的顺序来获取锁，线程直接进入队列中排队，队列中的第一个线程才能获得锁 
+
+非公平锁是多个线程加锁时直接尝试获取锁，获取不到才会到等待队列的队尾等待 
+
+默认非公平锁
+
 
 
 **读写锁**
+
+ 读写锁：既是排他锁，又是共享锁。 读写锁底层是同一把锁（基于同一个AQS），所以会有同一时刻不允许读写锁共存的限制 。
 
 
 
@@ -597,6 +726,14 @@ JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋�
 
 
 
+**阻塞队列有哪几种**
+
+* ArrayBlockingQueue，数组有界
+* LinkedBlockingQueue，链表，不指定大小默认无界(int的最大值)
+*  SynchronousQueue  容量为 0 
+*  PriorityBlockingQueue  是一个支持优先级的无界阻塞队列(带顺序的)，可以通过自定义类实现 compareTo() 方法来指定元素排序规则 
+*  DelayQueue  设定让队列中的任务延迟多久之后执行 
+
 
 
 **最大线程数设置过大会有什么后果**
@@ -619,6 +756,8 @@ JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋�
 
 
 CAS的实现
+
+比较交换，当前值等于期待值时才进行操作。
 
 
 
@@ -1033,6 +1172,14 @@ Java虚拟机栈可能会出现两种错误：StackOverFlowError 和 OutOfMemory
 
 
 
+**数组在内存中如何分配**
+
+
+
+**Java中常说的堆和栈，分别是什么数据结构；另外，为什么要分为堆和栈来存储数据**
+
+
+
 **什么是双亲委派模型**
 
 根据双亲委派模式，在加载类文件的时候，子类加载器首先将加载请求委托给它的父加载器，父加载器会检测自己是否已经加载过类，如果已经加载则加载过程结束，如果没有加载的话则请求继续向上传递直Bootstrap ClassLoader。如果请求向上委托过程中，如果始终没有检测到该类已经加载，则Bootstrap ClassLoader开始尝试从其对应路劲中加载该类文件，如果失败则由子类加载器继续尝试加载，直至发起加载请求的子加载器为止。
@@ -1053,6 +1200,12 @@ Java虚拟机栈可能会出现两种错误：StackOverFlowError 和 OutOfMemory
 **为什么要使用双亲委派模型**
 
  免类的重复加载，这样就可以保证任何的类加载器最终得到的都是同样一个Object对象。 
+
+
+
+**为什么要自定义类加载器**
+
+有时我们不一定是从类文件中读取类，可能是从网络的输入流中读取类，这就需要做一些*加密和解密操作*，这就需要自己实现加载类的逻辑，当然其他的特殊处理也同样适用 
 
 
 
@@ -1116,8 +1269,6 @@ Java虚拟机栈可能会出现两种错误：StackOverFlowError 和 OutOfMemory
 方法区中类静态属性引用的对象
 
 方法区中常量引用的对象
-
-
 
 
 

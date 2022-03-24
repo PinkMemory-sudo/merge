@@ -4,6 +4,7 @@ import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -16,6 +17,9 @@ public class MainClass {
 
         System.out.println(test(6));
         System.out.println(Math.pow(2, 3));
+
+        Class<User> userClass = User.class;
+        ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
     }
 
     public static int test(int n) {

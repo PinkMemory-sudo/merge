@@ -12,13 +12,22 @@ Springboot内嵌Tomcat
 
 **Spring Boot 的主要优点** 
 
+* 简化了Spring的配置
+* 内嵌Tomcat，可以打成jar包独立运行
+
 
 
 **Spring Boot ⽀持哪些内嵌 Servlet 容器** 
 
+* tomcat
+* jetty
+
 
 
 **如何在 Spring Boot 应⽤程序中使⽤ Jetty ⽽不是 Tomcat** 
+
+1. 排除掉tomcat的依赖
+2. 添加jetty的依赖
 
 
 
@@ -81,15 +90,15 @@ BeanFactory 所有可实现的功能，还具备其他更多的功能。
 
 **Spring中的Bean为什么用单例**
 
+* 减少实例的创建提高性能
+* 减少GC
+* 快速获得
+
 
 
 **SpringBean是线程安全的吗**
 
 单例的，但不是线程安全的
-
-
-
-BeanFactory创建Bean过程
 
 
 
@@ -127,7 +136,19 @@ IoC 容器是 Spring 用来实现 IoC 的载体， IoC 容器实际上就是个M
 
 **什么是面向切面编程**
 
+面向对象编程的补充，不再使用继承的方式来增强而是使用切面的方式进行增强
 
+
+
+**名词解释**
+
+切面：增强的功能类
+
+连接点：
+
+切入点：
+
+通知：增强的方法
 
 
 
@@ -146,33 +167,78 @@ Spring AOP 属于运⾏时增强，⽽ AspectJ 是编译时增强。 Spring AOP 
 
 **springIOC、AOP、静态代理和动态代理的区别**
 
+静态代理时在编译的时候生成一个代理类，动态代理是在运行的时候生成一个代理对象
+
 
 
 **项目中SpringAOP的使用**
+
+日志采集
 
 
 
 **有哪几种增强**
 
+* 运行前
+* 运行后
+* 返回
+* 环绕
+* 异常
+
+```java
+try{
+      try{
+           doBefore();//对应@Before注解的方法切面逻辑
+           method.invoke();
+       }finally{
+           doAfter();//对应@After注解的方法切面逻辑
+       }
+       doAfterReturning();//对应@AfterReturning注解的方法切面逻辑
+   }catch(Exception e){
+        doAfterThrowing();//对应@AfterThrowing注解的方法切面逻辑
+   }
+```
 
 
-拦截器和过滤器底层原理
+
+**拦截器和过滤器底层原理**
+
+过滤器 和 拦截器 均体现了AOP的编程思想，都可以实现诸如日志记录、登录鉴权等功能
+
+实现原理：过滤器是基于Servlet的函数回调的，依赖tomcat容器，拦截器 则是基于Java的反射机制（动态代理）实现的。 
+
+触发时机：Filter是进入Tomcat后servlet前触发，拦截器是进入servlet后，controller前触发
+
+```java
+@Order(1)
+@WebFilter(filterName="firstFilter", urlPatterns="/*")
+public class FirstFilter implements Filter {
+ 
+	@Override
+	public void init(FilterConfig filterConfig) throws ServletException {
+		
+	}
+ 
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		System.out.println("first filter 1");
+		chain.doFilter(request, response);
+		System.out.println("first filter 2");
+	}
+ 
+	@Override
+	public void destroy() {
+		
+	}
+}
+```
 
 
-
-**拦截器使用**
-
-
-
-**名词解释**
 
 
 
 ## 事务
-
-
-
-Spring事务配置，隔离级别
 
 
 
@@ -217,10 +283,6 @@ Service接口方法可能会在内部调用其它的Service接口方法以共同
 
 
 
-**SpringMVC的原理**
-
-
-
 **SpringMVC工作流程**
 
 1. 发送请求到**DispatchServlet**，DispatchServlet调用**HandlerMapping**通过url找到对应的处理器及拦截器生成执行链返回给DispatchServlet
@@ -234,7 +296,7 @@ Service接口方法可能会在内部调用其它的Service接口方法以共同
 
 
 
-**SpringBoot的核心注解，主要有哪几个注解组成**
+**SpringBoot的核心注解，主要有哪几个注解组成，Spring Boot 的⾃动配置是如何实现的?** **
 
 @SpringBootApplication，主要由@SpringBootConfiguration，@EnableAutoConfiguration，@ComponentScan三个注解组成
 
@@ -243,10 +305,6 @@ Service接口方法可能会在内部调用其它的Service接口方法以共同
 @ComponentScan：自动扫描本包和子包路径下的 @Component(以及@Service等) 注解进行注册 bean 实例到 context 中
 
 @EnableAutoConfiguration：通过判断类路径下有没有相应配置的jar包来确定是否加载和配置这个功能，读取jar包下的配置文件，将需要的bean注入到spring容器中。
-
-
-
-**Spring Boot 的⾃动配置是如何实现的?** 
 
 
 
@@ -271,13 +329,30 @@ bootstrap主要用于从额外的资源来加载配置信息，
 
 **配置文件的优先级**
 
+config>当前目录，工作目录>classPath
+
+1. 工作目录/config
+2. 工作目录
+3. classpath/config
+4. classpath
+
 
 
 **Spring Boot 如何做请求参数校验** 
 
+实体类属性上添加@xxx注解和错误消息
+
+接口中的参数前添加@Valid，参数后进阶BindResult接收错误消息
+
+判断BindResult中有没有错误
+
 
 
 **如何使⽤ Spring Boot 实现全局异常处理？**
+
+类名上添加 @ControllerAdvice 
+
+定义方法，方法上添加 @ExceptionHandler(value =Exception.class)，方法的参数接受异常
 
 
 
@@ -307,10 +382,6 @@ bootstrap主要用于从额外的资源来加载配置信息，
 
 
 
-**Spring中注解失效的场景**
-
-
-
 **怎么防止定时任务重复值行多次**
 
 
@@ -325,15 +396,16 @@ Oauth2中后台token是存在服务JVM内存中，如果服务崩了的话，tok
 
 
 
-**拦截器与过滤器的区别**
-
-
-
 **怎么进行限流**
 
 
 
 **SpringMVC不同⽤户登录的信息怎么保证线程安全的** 
 
+* 不要定义类变量
+* bean设为原型模式
 
+
+
+**Spring怎么解决循环依赖的**
 
