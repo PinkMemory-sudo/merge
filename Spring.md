@@ -2,11 +2,13 @@
 
 
 
-**Springboot与Spring的关系**
+**Springboot与Spring，SpringMVC的关系**
 
 Springboot简化了Spring的配置
 
 Springboot内嵌Tomcat
+
+SpringMVC提供了一个web开发的框架
 
 
 
@@ -31,6 +33,12 @@ Springboot内嵌Tomcat
 
 
 
+**Spring怎么解决循环依赖的**
+
+
+
+
+
 ## Bean
 
 
@@ -45,7 +53,7 @@ Springboot内嵌Tomcat
 
 **Spring 中 beanFactory 和 ApplicationContext 的联系和区别**  
 
-两者都可作为容器
+这两个接口都可作为容器ApplicationContext 继承了beanFactory ，此外还继承了其他接口(国际化等)，延迟加载与一次加载
 
 BeanFactory：
 

@@ -34,4 +34,7 @@ CMD容器启动时运行的命令
 
 **COPY和ADD的区别**
 
- COPY与ADD的区别COPY的SRC只能是本地文件，其他用法一致
+COPY与ADD的区别COPY的SRC只能是本地文件，其他用法一致
+
+
+

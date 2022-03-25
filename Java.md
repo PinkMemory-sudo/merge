@@ -869,8 +869,6 @@ CyclicBarrier cyclicBarrier = new CyclicBarrier(4);
 
 
 
-
-
 ### 原子操作类
 
 使用原子操作类，减少对Synxhronized和Lock的使用
@@ -1183,6 +1181,10 @@ Java虚拟机栈可能会出现两种错误：StackOverFlowError 和 OutOfMemory
 **什么是双亲委派模型**
 
 根据双亲委派模式，在加载类文件的时候，子类加载器首先将加载请求委托给它的父加载器，父加载器会检测自己是否已经加载过类，如果已经加载则加载过程结束，如果没有加载的话则请求继续向上传递直Bootstrap ClassLoader。如果请求向上委托过程中，如果始终没有检测到该类已经加载，则Bootstrap ClassLoader开始尝试从其对应路劲中加载该类文件，如果失败则由子类加载器继续尝试加载，直至发起加载请求的子加载器为止。
+
+
+
+**怎么破坏双亲委派模型**
 
 
 
