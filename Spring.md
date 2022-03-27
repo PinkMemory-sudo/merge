@@ -304,7 +304,7 @@ Service接口方法可能会在内部调用其它的Service接口方法以共同
 
 
 
-**SpringBoot的核心注解，主要有哪几个注解组成，Spring Boot 的⾃动配置是如何实现的?** **
+**SpringBoot的核心注解，主要有哪几个注解组成，Spring Boot 的⾃动配置是如何实现的?** 
 
 @SpringBootApplication，主要由@SpringBootConfiguration，@EnableAutoConfiguration，@ComponentScan三个注解组成
 
