@@ -41,7 +41,7 @@ false 因为c是间接相加的，jvm不会对引用变量进行优化
 
 
 
-# 反射
+## 反射
 
 
 
@@ -212,6 +212,14 @@ for (Field field : userClass.getDeclaredFields()) {
 * 返回值类型相同
 * 异常，不能抛出比父类大的异常
 * 
+
+
+
+## NIO
+
+
+
+**NIO的原理**
 
 
 
@@ -586,6 +594,12 @@ synchronized用来进行线程同步的，代码块synchronized修饰的方法�
 
 
 
+**Synchronized原理**
+
+每个对象创建时对象头中都会存储hashcode，GC年两，锁状态标志，线程持有的锁，偏向锁的线程ID，偏向锁的时间戳等。
+
+
+
 **为什么不建议使用String作为锁对象**
 
  尽量不要使⽤ synchronized(String a) 因为 JVM 中，字符串常量池具有缓存功能， 两个String的值一致时指向的地址是一致的，其实两个线程锁的是同一个对象。
@@ -733,6 +747,16 @@ JDK1.6 对锁的实现引入了大量的优化，如自旋锁、适应性自旋�
 *  SynchronousQueue  容量为 0 
 *  PriorityBlockingQueue  是一个支持优先级的无界阻塞队列(带顺序的)，可以通过自定义类实现 compareTo() 方法来指定元素排序规则 
 *  DelayQueue  设定让队列中的任务延迟多久之后执行 
+
+
+
+**线程池的种类**
+
+*  newCachedThreadPool无限大的线程池
+*  newFixedThreadPool  固定大小的线程池
+*  newScheduledThreadPool  创建一个定长线程池，支持定时及周期性任务执行 
+*  newSingleThreadExecutor只有一个线程的线程池，保证任务执行的顺序 
+*   newWorkStealingPool ForkJoinPool的扩展
 
 
 
