@@ -5,7 +5,7 @@
 * 从XML创建SqlSessionFactory
 * 指定Mappe.XML位置，加载Mapper的方式
 * 动态SQL
-* 懒加载
+* 延迟
 
 * 与SpringData的继承
 * 映射关系
@@ -64,9 +64,10 @@ XML
 
 **优点：**
 
-MyBatis简化了JDBC连接代码和结果集映射代码。
+* MyBatis简化了JDBC连接代码和结果集映射代码。
 
-是SQL与代码分离，进行解耦。
+* 使SQL与代码分离，进行解耦。
+* 可以自定义映射结果
 
 
 
@@ -223,6 +224,18 @@ MyBatis可以执行不同厂商的SQL。在mapper.xml中可以指定databaseId�
 
 
 
+## **常用配置**
+
+```properties
+# 驼峰转换
+# 设置别名
+# xml文件的目录
+```
+
+
+
+
+
 
 
 # 映射文件
@@ -256,20 +269,13 @@ MyBatis可以执行不同厂商的SQL。在mapper.xml中可以指定databaseId�
 
 useGeneratedKeys设置为true，keyProperty指定属性名
 
-```mysql
-
-```
-
-对于不支持自增型主键的数据库，则可以使用 selectKey 子元素：selectKey 元素将会首先运行，id 会被设置，然
-后插入语句会被调用
-
-
-
 ```xml
-<update id="方法名">
-    SQL语句
-</update>
+<insert id="addEmployee" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO employee VALUES(null,#{name},#{age},#{dpId})
+</insert>
 ```
+
+**注意**：自增的id会被赋值给实体类中的id属性，而方法返回的int只是受影响的个数
 
 
 
@@ -302,13 +308,24 @@ insert标签添加配置
 
 ## 查
 
-![image-20220221135037886](/Users/chenguanlin/Documents/workspace/merge/img/MyBatis-查询标签属性.png)
+![image-20220221135037886](../../../merge/img/MyBatis-查询标签属性.png)
+
+
+
+**模糊查询**
+
+```xml
+<select id="findByPrefixName" resultType="Employee">
+    SELECT * FROM employee
+    WHERE name like #{prefixName}"%"
+</select>
+```
+
+注意%要加双引号
 
 
 
 ## 参数传递
-
-接口中可以指定多个参数或者封装成一个pojo，在mapper中都可以通过#{下标}或者#{属性名}来获得参数值。
 
 
 
@@ -336,19 +353,9 @@ insert标签添加配置
 
 
 
-**取数组(或者集合)中的参数**
+**#{name}中用不用指定双引号？**
 
-```
-参数名[下标]
-```
-
-
-
-todo
-
-**#{}更丰富的取值用法**
-
-指定取值时参数相关的规则：
+不用
 
 
 
@@ -356,17 +363,33 @@ todo
 
 
 
-## 自动映射
+**不指定返回值类型**
+
+返回的是受影响的行数
 
 
 
+### resultType
 
+**映射实体类**
 
-### **resultType**
-
-用来自动ORM转换，直接指定结果集要转换成的类型
+指定resultType。*resultType*用来自动ORM转换，直接指定结果集要转换成的类型
 
 MyBatis已经为许多常见的 Java 类型内建了相应的类型别名。它们都是大小写不敏感的。
+
+
+
+**映射List**
+
+与映射实体类相同
+
+
+
+
+
+
+
+
 
 
 
@@ -480,6 +503,14 @@ id和result来指定字段映射成什么属性	![image-20220221140209372](/User
 
 在关联映射时，不再是一下查出来，而是先查出人，通过association的select标签根据部门Id查部门，将结果返回给对象的属性。
 
+```xml
+<resultMap type="" id="">
+    <association property="哪个属性名时需要联结的" select="..." coumn="...">
+    <!--根据情况在对嵌套的JavaBean进行映射-->
+    </association>
+</resultMap>
+```
+
 * select:表明当前属性是调用select指定的方法查出的结果
 * column:指定将哪一列的值传给这个方法
 
@@ -493,7 +524,7 @@ coumn="{key1=colume1...}"
 
 #### collection
 
-一对多映射
+**一对多映射**
 
 一个部门中有多个员工，Department有个List\<Employee>
 
@@ -505,15 +536,7 @@ coumn="{key1=colume1...}"
 </collection>
 ```
 
-方法二：分布查询
-
-
-
-**鉴别器**
-
-根据结果集某列值的不同改变映射行为
-
-discriminator
+**方法二：分布查询**
 
 
 
@@ -561,7 +584,7 @@ resultMap中使用association和collection可以延迟加载，先从单表查�
 
 分支选择，多选一
 
-![image-20220222103736038](/Users/chenguanlin/Documents/workspace/merge/img/MyBatis-动态SQL-choose.png)
+![image-20220222103736038](../../../merge/img/MyBatis-动态SQL-choose.png)
 
 
 
@@ -629,16 +652,6 @@ trim用来处理拼装完成的SQL语句，去掉/加上一些前缀或后缀，
 ## sql
 
 抽取可以重用的sql语句
-
-
-
-## 内置参数
-
-除了传进来的参数，mybatis中还有两个默认参数
-
-_parameter代表整个参数
-
-——databaseId
 
 
 
@@ -740,3 +753,27 @@ upserter
 一对多映射时出现**TooManyResultsException**
 
 检查resultMap与select的返回的字段是否能映射上，id标签是一定要写的。
+
+
+
+`Invalid bound statement (not found): com.pk.mybatis.mapper.EmployeeMapper.addEmployee`
+
+配置文件中指定的mapper-location是否正确
+
+xml文件中namespace和id是否与接口对应
+
+
+
+`Cannot find class`
+
+需要指定实体类目录来设置别名，否则就写全限定名
+
+```properties
+mybatis.type-aliases-package=com.pk.mybatis.mybatis.entity
+```
+
+
+
+` A query was run and no Result Maps were found for the Mapped Statement `
+
+DELETE,INSERT,UPDATE不用指定映射，因为它们返回的是受影响的行数，SELECT必须指定返回值如何映射

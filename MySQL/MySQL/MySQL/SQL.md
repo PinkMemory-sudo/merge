@@ -290,7 +290,8 @@ ALERT TABLE table_name DROP INDEX index_name;
 INSERT INTO table_name (filed1_name,...) VALUES(value1,...),(...);
 ```
 
-插入的值的顺序与指定的列名顺序和个数相同
+* 插入的值的顺序与指定的列名顺序和个数相同时可以不用指定field
+* VALUES后可接多个值，逗号隔开
 
 
 
@@ -313,6 +314,8 @@ UPDATE table_name
 SET column_name1=new_value,column_name2=new _value...
 [WHERE ...]
 ```
+
+* SELECT和DELETE都有FROM，UPDATE没有
 
 
 
