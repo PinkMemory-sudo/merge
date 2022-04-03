@@ -29,6 +29,12 @@ Redis支持多个数据库，并且每个数据库的数据是隔离的不能共
 
 
 
+[参考](https://www.cnblogs.com/heqiuyong/p/10463334.html)
+
+1. 下载tar包`https://download.redis.io/releases/`
+
+
+
 ```
 docker pull redis:5.0.7
 ```
@@ -59,6 +65,17 @@ redis-server /etc/redis/redis.conf --appendonly yes
 * 大小写不敏感
 * 1k与1kb有区别
 * include 路径，可以包含其他配置文件
+
+
+
+**允许远程登录**
+
+```
+1.bind 127.0.0.1改为 #bind 127.0.0.1 (注释掉)
+2.protected-mode yes 改为 protected-mode no
+```
+
+
 
 
 
@@ -167,6 +184,8 @@ Redis 命令用于在 redis 服务上执行操作。要在 redis 服务上执行
 | TTL key                | 返回剩余时间， 秒             |
 | randomkey              | 随机返回一个key               |
 | rename key newName     | 重命名                        |
+| setnx key value        | 不存在时才插入                |
+| renamenx key newkey    | newkey不存在时将key重命名     |
 
 *练习*：
 
@@ -258,18 +277,18 @@ string 类型是二进制安全的。意思是 redis 的 string 可以包含任�
 
 常用命令与String命令相比，**前面多了个h**
 
-| 操作                       | 描述                                     |
-| -------------------------- | ---------------------------------------- |
-| 赋值一个字段的             | HSET key field value                     |
-| 一次赋值多个字段的         | HMSET key field1 value1 [field2 value2 ] |
-| 获得所有hash中的key        | hkeys pattern                            |
-| 获得一个hash中的某个字段值 | HGET key field                           |
-| 获得一个hash中的所有字段值 | hgetall key                              |
-| 字段不存在时设置           | HSETNX key field value                   |
-| 一个hash中某个字段是否存在 | HEXISTS key field                        |
-| 一个hash中的一个字段自增   | HINCRBY key field increment              |
-| hash中浮点数自增           | HINCRBYFLOAT key field increment         |
-| 获得字段个数               | hlen key                                 |
+| 操作                           | 描述                                     |
+| ------------------------------ | ---------------------------------------- |
+| 赋值一个字段的                 | HSET key field value                     |
+| 一次赋值多个字段的，与HSET相同 | HMSET key field1 value1 [field2 value2 ] |
+| 获得所有hash中的key            | hkeys pattern                            |
+| 获得一个hash中的某个字段值     | HGET key field                           |
+| 获得一个hash中的所有字段值     | hgetall key                              |
+| 字段不存在时设置               | HSETNX key field value                   |
+| 一个hash中某个字段是否存在     | HEXISTS key field                        |
+| 一个hash中的一个字段自增       | HINCRBY key field increment              |
+| hash中浮点数自增               | HINCRBYFLOAT key field increment         |
+| 获得字段个数                   | hlen key                                 |
 
 ​	
 
@@ -279,7 +298,7 @@ string 类型是二进制安全的。意思是 redis 的 string 可以包含任�
 
 字符串列表，列表最多可存储 232 - 1 元素，一个双向链表，所以在头部或尾部插入
 
-命令以l开头
+命令以l开头，存是push，删是pop，查看是index
 
 
 

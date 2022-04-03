@@ -1,26 +1,15 @@
-Redis support
-
-Redis repositories
-
-* 哨兵模式和集群的使用
-
-工厂充当`PersistenceExceptionTranslator`对象
-
-
-
-两种连接工厂
-
-
-
-
-
-RedisConnection
+* 主从复制
+* 哨兵的支持
 
 
 
 Redis序列化
 
 
+
+
+
+# 连接到Redis
 
 
 
@@ -167,6 +156,10 @@ getNativeConnection获得连接
 
 
 ## RedisTemplate
+
+
+
+### SpringDataRedis
 
 
 
