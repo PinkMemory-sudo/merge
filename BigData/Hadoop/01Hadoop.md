@@ -6,6 +6,8 @@
 
 用来进行海量数据的存储(HDFS)和计算(MR)，广义上来说指的是Hadoop的生态圈。
 
+数据的存取由HDFS完成：HDFS由NameNode,NN2,DataNode组成
+
 
 
 **历史**
