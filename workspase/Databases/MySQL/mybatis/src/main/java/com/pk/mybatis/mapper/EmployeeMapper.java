@@ -20,4 +20,6 @@ public interface EmployeeMapper {
     int countByDpId(int dpId);
 
     Employee findByPrefixName(String prefixName);
+
+    List<String> findTen();
 }

@@ -32,7 +32,13 @@
         WHERE dp_id=#{dpId}
     </select>
 
-<!--    int countByDpId(int dpId);-->
+<!--    List<String> findTen();-->
+    <select id="findTen" resultType="String">
+        SELECT name FROM pms_category
+        LIMIT 10
+    </select>
+
+    <!--    int countByDpId(int dpId);-->
     <select id="countByDpId" resultType="integer">
         SELECT count(*) FROM employee
         WHERE dp_id=#{dpId}

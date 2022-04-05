@@ -36,7 +36,8 @@ public class SeleteTest {
 
     @Test
     public void findByPrefixName(){
-        Employee employee = employeeMapper.findByPrefixName("To");
-        log.info("find:{}",employee);
+//        Employee employee = employeeMapper.findByPrefixName("To");
+        System.out.println(employeeMapper.findTen());
+//        log.info("find:{}",employee);
     }
 }
